@@ -8,6 +8,7 @@ import com.ratan.invoice.repository.ClientRepository;
 import com.ratan.invoice.repository.InvoiceRepository;
 import com.ratan.invoice.security.SecurityUtils;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,9 +34,11 @@ public class DashboardService {
         this.invoiceService = invoiceService;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public DashboardStatsResponse getStats() {
         Long userId = SecurityUtils.getCurrentUser().getId();
+        // Flag past-due SENT invoices as OVERDUE first, so the counts below are up to date.
+        invoiceRepository.markSentInvoicesOverdue(LocalDate.now());
         List<Invoice> invoices = invoiceRepository.findAllByUserIdOrderByCreatedAtDescIdDesc(userId);
         long totalClients = clientRepository.findAllByUserIdOrderByNameAsc(userId).size();
 

@@ -18,6 +18,8 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
     @EntityGraph(attributePaths = {"client", "items"})
     Optional<Invoice> findByIdAndUserId(Long id, Long userId);
 
+    boolean existsByClientId(Long clientId);
+
     @Modifying
     @Query("update Invoice i set i.status = com.ratan.invoice.entity.InvoiceStatus.OVERDUE "
             + "where i.status = com.ratan.invoice.entity.InvoiceStatus.SENT and i.dueDate < :today")

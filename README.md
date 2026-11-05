@@ -61,7 +61,14 @@
 - **Apache Maven 3.8+** (Maven 3.9.11 installed)
 - **Modern Web Browser** (Chrome, Edge, Firefox, Brave)
 
-### 2. Run the Application
+### 2. Configure Secrets (optional for a local demo)
+Copy `backend/secrets.properties.example` to `backend/secrets.properties` and fill in the values you need
+(JWT secret, MySQL connection, AI keys). This file is git-ignored, so keys never reach GitHub.
+Without it, the app runs on embedded H2 with a random JWT key and the rule-based AI fallback.
+
+To open the H2 database console locally, set `H2_CONSOLE_ENABLED=true` (it is disabled by default).
+
+### 3. Run the Application
 Open a terminal in `D:\Ai_Invoice _genaretorer\backend`:
 
 ```powershell
@@ -70,11 +77,11 @@ mvn spring-boot:run
 
 The Spring Boot backend will build, auto-seed the demo database, and start on port **8080**.
 
-### 3. Access the Web Application
+### 4. Access the Web Application
 Open your browser and navigate to:
 👉 **[http://localhost:8080/](http://localhost:8080/)**
 
-### 4. Demo Login (1-Click)
+### 5. Demo Login (1-Click)
 On the sign-in screen, click the **"1-Click Demo Sign In (Preloaded Data)"** button, or enter:
 - **Email**: `demo@invoice.ai`
 - **Password**: `password123`
@@ -113,6 +120,12 @@ The preloaded profile includes:
 - `DELETE /api/clients/{id}`: Delete client
 - `GET /api/dashboard/stats`: Retrieve financial metrics, status counts, and revenue trends
 - `POST /api/seed`: Seed sample demo data
+
+---
+
+## 🤖 AI Collaboration Log
+
+See [AI_PROMPT_LOG.md](AI_PROMPT_LOG.md) for the tools used, key prompts, and what was reviewed, modified and debugged.
 
 ---
 

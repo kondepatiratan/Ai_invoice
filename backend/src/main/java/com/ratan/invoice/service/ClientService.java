@@ -5,8 +5,10 @@ import com.ratan.invoice.dto.ClientResponse;
 import com.ratan.invoice.entity.Client;
 import com.ratan.invoice.entity.User;
 import com.ratan.invoice.exception.DuplicateResourceException;
+import com.ratan.invoice.exception.InvalidRequestException;
 import com.ratan.invoice.exception.ResourceNotFoundException;
 import com.ratan.invoice.repository.ClientRepository;
+import com.ratan.invoice.repository.InvoiceRepository;
 import com.ratan.invoice.repository.UserRepository;
 import com.ratan.invoice.security.SecurityUtils;
 import java.util.List;
@@ -18,10 +20,15 @@ public class ClientService {
 
     private final ClientRepository clientRepository;
     private final UserRepository userRepository;
+    private final InvoiceRepository invoiceRepository;
 
-    public ClientService(ClientRepository clientRepository, UserRepository userRepository) {
+    public ClientService(
+            ClientRepository clientRepository,
+            UserRepository userRepository,
+            InvoiceRepository invoiceRepository) {
         this.clientRepository = clientRepository;
         this.userRepository = userRepository;
+        this.invoiceRepository = invoiceRepository;
     }
 
     @Transactional
@@ -66,6 +73,9 @@ public class ClientService {
     @Transactional
     public void delete(Long id) {
         Client client = findOwned(id);
+        if (invoiceRepository.existsByClientId(client.getId())) {
+            throw new InvalidRequestException("Can't delete a client that has invoices");
+        }
         clientRepository.delete(client);
     }
 

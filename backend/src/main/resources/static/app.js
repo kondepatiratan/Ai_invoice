@@ -240,15 +240,16 @@ function renderDashboardCharts(stats) {
     if (state.charts.revenue) state.charts.revenue.destroy();
 
     const trends = stats.monthlyTrends || [];
-    const labels = trends.length > 0 ? trends.map(t => t.month) : ['Oct 2026', 'Nov 2026'];
-    const dataValues = trends.length > 0 ? trends.map(t => t.revenue) : [120000, stats.totalRevenue || 194700];
+    // Show only real data: an empty chart is better than made-up numbers.
+    const labels = trends.map(t => t.month);
+    const dataValues = trends.map(t => t.revenue);
 
     state.charts.revenue = new Chart(ctxRevenue, {
       type: 'bar',
       data: {
         labels: labels,
         datasets: [{
-          label: 'Revenue (₹)',
+          label: 'Billed (₹)',
           data: dataValues,
           backgroundColor: '#4f46e5',
           borderRadius: 8,
