@@ -152,7 +152,9 @@ function switchView(viewName) {
     btn.classList.toggle('active', btn.dataset.view === viewName);
   });
 
-  const targetView = document.getElementById(`view${capitalize(viewName)}`);
+  // 'ai-studio' -> 'AiStudio' so it matches the section id 'viewAiStudio'
+  const viewId = viewName.split('-').map(capitalize).join('');
+  const targetView = document.getElementById(`view${viewId}`);
   if (targetView) {
     targetView.classList.remove('d-none');
   }
