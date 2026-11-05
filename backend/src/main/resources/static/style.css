@@ -1,0 +1,257 @@
+/* ========================================================
+   InvoxAI - Modern SaaS Stylesheet
+   ======================================================== */
+
+:root {
+  --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: 'Plus Jakarta Sans', sans-serif;
+  
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --primary-light: #e0e7ff;
+  
+  --secondary: #64748b;
+  --dark: #0f172a;
+  --surface: #f8fafc;
+  --card-bg: #ffffff;
+  
+  --emerald: #10b981;
+  --amber: #f59e0b;
+  --crimson: #ef4444;
+  --indigo: #6366f1;
+  --purple: #8b5cf6;
+}
+
+body {
+  font-family: var(--font-primary);
+  background-color: var(--surface);
+  color: var(--dark);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6, .navbar-brand {
+  font-family: var(--font-display);
+}
+
+.tracking-tight { letter-spacing: -0.025em; }
+.tracking-wider { letter-spacing: 0.05em; }
+.letter-spacing-1 { letter-spacing: 1px; }
+
+/* Custom Gradients */
+.bg-gradient-brand {
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%);
+}
+
+.bg-gradient-ai {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #d946ef 100%);
+}
+
+.btn-gradient-ai {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #c026d3 100%);
+  border: none;
+  transition: all 0.25s ease;
+}
+
+.btn-gradient-ai:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(124, 58, 237, 0.3) !important;
+  color: #ffffff;
+}
+
+.text-amber { color: var(--amber) !important; }
+.bg-emerald { background-color: var(--emerald) !important; }
+
+/* Brand Icon */
+.brand-icon {
+  width: 36px;
+  height: 36px;
+  font-size: 1.1rem;
+}
+
+/* Auth Card */
+.auth-wrapper {
+  background: radial-gradient(circle at 50% 10%, #e0e7ff 0%, #f8fafc 100%);
+}
+
+.auth-card {
+  border-radius: 1.25rem;
+}
+
+/* Nav Pills */
+.nav-pills .nav-link {
+  color: var(--secondary);
+  font-weight: 500;
+  border-radius: 9999px;
+  transition: all 0.2s ease;
+}
+
+.nav-pills .nav-link:hover {
+  color: var(--dark);
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.nav-pills .nav-link.active {
+  background-color: #1e293b;
+  color: #ffffff;
+}
+
+/* AI Status Pill */
+.ai-status-pill {
+  transition: all 0.2s ease;
+}
+
+.ai-status-pill:hover {
+  background-color: #ffffff !important;
+  border-color: #c7d2fe !important;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.12) !important;
+}
+
+.status-pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+/* Avatars */
+.avatar {
+  width: 32px;
+  height: 32px;
+  font-size: 0.8rem;
+}
+
+/* Stat Cards */
+.stat-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06) !important;
+}
+
+.stat-icon-wrapper {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+/* Filter Buttons */
+.btn-filter {
+  color: var(--secondary);
+  border: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-filter.active {
+  background-color: #ffffff !important;
+  color: var(--dark) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+/* Prompt Sample Pills */
+.prompt-sample-pill {
+  transition: all 0.2s ease;
+}
+
+.prompt-sample-pill:hover {
+  background-color: #e0e7ff;
+  border-color: #818cf8 !important;
+  color: #3730a3;
+  transform: translateY(-1px);
+}
+
+/* Status Badges */
+.badge-status-paid {
+  background-color: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.badge-status-sent {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+.badge-status-overdue {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.badge-status-draft {
+  background-color: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+/* Table styling */
+.table th {
+  font-weight: 600;
+  border-bottom-width: 1px;
+}
+
+.table tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+/* Printable Invoice Sheet */
+.invoice-sheet {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Print CSS Rules */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #previewModal,
+  #printableInvoiceSheet,
+  #printableInvoiceSheet * {
+    visibility: visible;
+  }
+  #previewModal {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  .modal-dialog {
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+  .modal-content {
+    border: none !important;
+    box-shadow: none !important;
+  }
+  .modal-header,
+  .modal-footer,
+  .btn-close {
+    display: none !important;
+  }
+  .modal-body {
+    padding: 0 !important;
+    background: transparent !important;
+  }
+  .invoice-sheet {
+    box-shadow: none !important;
+    border: none !important;
+    padding: 20px !important;
+  }
+}
