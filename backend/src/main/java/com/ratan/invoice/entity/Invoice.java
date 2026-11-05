@@ -27,7 +27,13 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "invoices")
+@Table(
+        name = "invoices",
+        uniqueConstraints = @jakarta.persistence.UniqueConstraint(
+                name = "uk_invoices_user_number",
+                columnNames = {"user_id", "invoice_number"}
+        )
+)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -39,7 +45,7 @@ public class Invoice {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 50)
+    @Column(nullable = false, length = 50)
     private String invoiceNumber;
 
     @Column(nullable = false)

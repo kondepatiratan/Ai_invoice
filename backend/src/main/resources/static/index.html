@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InvoxAI • Next-Gen AI Invoice Generation & Management</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Bootstrap 5.3 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-surface">
+
+  <!-- Toast Container -->
+  <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1090;">
+    <div id="liveToast" class="toast align-items-center text-white border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body d-flex align-items-center gap-2" id="toastMessage">
+          <i class="fa-solid fa-circle-check"></i> Action completed successfully.
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AUTH SCREEN -->
+  <div id="authScreen" class="auth-wrapper min-vh-100 d-flex align-items-center justify-content-center p-3">
+    <div class="auth-card card shadow-2xl border-0 overflow-hidden" style="max-width: 460px; width: 100%;">
+      <div class="card-header bg-gradient-brand text-white p-4 text-center border-0 position-relative">
+        <div class="brand-badge mb-2 d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-white bg-opacity-15">
+          <i class="fa-solid fa-wand-magic-sparkles text-amber"></i>
+          <span class="small fw-semibold letter-spacing-1">NIVUNA LABS ASSIGNMENT</span>
+        </div>
+        <h2 class="h4 fw-bold mb-1">InvoxAI Studio</h2>
+        <p class="small text-white-50 mb-0">Intelligent GST Invoicing powered by Gemini & ChatGPT Fallback</p>
+      </div>
+
+      <div class="card-body p-4">
+        <!-- Auth Tabs -->
+        <ul class="nav nav-pills nav-justified mb-4 p-1 bg-light rounded-3" id="authTabs" role="tablist">
+          <li class="nav-item">
+            <button class="nav-link active fw-semibold" id="tab-login" data-bs-toggle="pill" data-bs-target="#pane-login" type="button">Sign In</button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link fw-semibold" id="tab-register" data-bs-toggle="pill" data-bs-target="#pane-register" type="button">Register</button>
+          </li>
+        </ul>
+
+        <div class="tab-content" id="authTabContent">
+          <!-- LOGIN PANE -->
+          <div class="tab-pane fade show active" id="pane-login" role="tabpanel">
+            <form id="loginForm">
+              <div class="mb-3">
+                <label class="form-label small fw-semibold text-secondary">Email Address</label>
+                <div class="input-group">
+                  <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-regular fa-envelope"></i></span>
+                  <input type="email" id="loginEmail" class="form-control bg-light border-start-0" placeholder="name@business.com" required>
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label small fw-semibold text-secondary">Password</label>
+                <div class="input-group">
+                  <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-lock"></i></span>
+                  <input type="password" id="loginPassword" class="form-control bg-light border-start-0" placeholder="••••••••" required>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold shadow-sm mb-3">
+                <i class="fa-solid fa-arrow-right-to-bracket me-2"></i> Sign In
+              </button>
+            </form>
+
+            <div class="position-relative text-center my-3">
+              <hr class="text-muted opacity-25">
+              <span class="position-absolute top-50 start-50 translate-middle bg-white px-3 small text-muted">OR FOR DEMO</span>
+            </div>
+
+            <!-- 1-Click Demo Fill & Login -->
+            <button id="btnDemoLogin" class="btn btn-outline-primary w-100 py-2 d-flex align-items-center justify-content-center gap-2 rounded-3 border-dashed">
+              <i class="fa-solid fa-rocket text-primary"></i>
+              <span class="fw-semibold">1-Click Demo Sign In (Preloaded Data)</span>
+            </button>
+            <div class="form-text text-center mt-2 small text-muted">
+              Pre-loaded with sample clients, invoices, and active Gemini API integration.
+            </div>
+          </div>
+
+          <!-- REGISTER PANE -->
+          <div class="tab-pane fade" id="pane-register" role="tabpanel">
+            <form id="registerForm">
+              <div class="mb-2">
+                <label class="form-label small fw-semibold text-secondary">Full Name</label>
+                <input type="text" id="regName" class="form-control bg-light" placeholder="e.g. Ratan Kondepati" required>
+              </div>
+              <div class="mb-2">
+                <label class="form-label small fw-semibold text-secondary">Email Address</label>
+                <input type="email" id="regEmail" class="form-control bg-light" placeholder="e.g. ratan@company.com" required>
+              </div>
+              <div class="mb-2">
+                <label class="form-label small fw-semibold text-secondary">Password</label>
+                <input type="password" id="regPassword" class="form-control bg-light" placeholder="Minimum 6 characters" required>
+              </div>
+              <div class="mb-2">
+                <label class="form-label small fw-semibold text-secondary">Business / Company Name</label>
+                <input type="text" id="regBusinessName" class="form-control bg-light" placeholder="e.g. Nivuna Cloud Solutions">
+              </div>
+              <div class="row g-2 mb-3">
+                <div class="col-6">
+                  <label class="form-label small fw-semibold text-secondary">State</label>
+                  <select id="regState" class="form-select bg-light state-dropdown">
+                    <option value="Karnataka" selected>Karnataka</option>
+                    <option value="Maharashtra">Maharashtra</option>
+                    <option value="Delhi">Delhi</option>
+                    <option value="Tamil Nadu">Tamil Nadu</option>
+                    <option value="Telangana">Telangana</option>
+                    <option value="Gujarat">Gujarat</option>
+                  </select>
+                </div>
+                <div class="col-6">
+                  <label class="form-label small fw-semibold text-secondary">GSTIN (Optional)</label>
+                  <input type="text" id="regGstin" class="form-control bg-light text-uppercase" placeholder="29ABCDE1234F1Z5">
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold shadow-sm">
+                <i class="fa-solid fa-user-plus me-2"></i> Create Account
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN APP CONTAINER -->
+  <div id="mainApp" class="d-none min-vh-100 d-flex flex-column">
+
+    <!-- TOP NAVBAR -->
+    <header class="navbar navbar-expand-lg bg-white border-bottom sticky-top py-2 px-3 px-lg-4 shadow-xs">
+      <div class="container-fluid p-0">
+        <!-- Brand -->
+        <a class="navbar-brand d-flex align-items-center gap-2 fw-bold text-dark m-0" href="#">
+          <div class="brand-icon bg-gradient-brand text-white rounded-3 d-flex align-items-center justify-content-center">
+            <i class="fa-solid fa-file-invoice-dollar"></i>
+          </div>
+          <span class="fs-5 tracking-tight">Invox<span class="text-primary">AI</span></span>
+        </a>
+
+        <!-- Navigation Links (Desktop) -->
+        <nav class="nav nav-pills ms-lg-4 gap-1 d-none d-md-flex" id="navLinks">
+          <button class="nav-link active px-3" data-view="dashboard">
+            <i class="fa-solid fa-chart-pie me-1"></i> Dashboard
+          </button>
+          <button class="nav-link px-3" data-view="invoices">
+            <i class="fa-solid fa-receipt me-1"></i> Invoices
+          </button>
+          <button class="nav-link px-3" data-view="ai-studio">
+            <i class="fa-solid fa-wand-magic-sparkles text-amber me-1"></i> AI Studio
+          </button>
+          <button class="nav-link px-3" data-view="clients">
+            <i class="fa-solid fa-users me-1"></i> Clients
+          </button>
+        </nav>
+
+        <!-- Right Side: AI Status Pill & User Menu -->
+        <div class="d-flex align-items-center gap-2 ms-auto">
+          <!-- AI Engine Live Pill -->
+          <div class="ai-status-pill d-flex align-items-center gap-2 px-3 py-1 rounded-pill border bg-light cursor-pointer shadow-2xs" id="btnAiSettings" title="Click to view AI Engine & Fallback configuration">
+            <span class="status-pulse bg-emerald"></span>
+            <span class="small fw-semibold text-secondary" id="aiStatusLabel">Gemini 2.5 Flash</span>
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill py-0 px-2 small">AI Ready</span>
+          </div>
+
+          <!-- New Invoice Quick Action -->
+          <button class="btn btn-primary btn-sm px-3 d-none d-sm-flex align-items-center gap-2 rounded-pill shadow-sm" id="btnTopNewInvoice">
+            <i class="fa-solid fa-plus"></i>
+            <span>New Invoice</span>
+          </button>
+
+          <!-- User Dropdown -->
+          <div class="dropdown">
+            <button class="btn btn-light rounded-pill p-1 ps-2 pe-3 d-flex align-items-center gap-2 border" type="button" data-bs-toggle="dropdown">
+              <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" id="userAvatar">
+                RK
+              </div>
+              <span class="small fw-semibold d-none d-lg-inline text-dark" id="userNameLabel">Ratan</span>
+              <i class="fa-solid fa-chevron-down small text-muted"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 py-2">
+              <li class="px-3 py-1 border-bottom mb-1">
+                <div class="fw-bold text-dark small" id="userMenuName">Ratan Kondepati</div>
+                <div class="text-muted small" id="userMenuEmail">demo@invoice.ai</div>
+                <div class="text-primary small fw-semibold" id="userMenuBiz">Nivuna Cloud Innovations</div>
+              </li>
+              <li><a class="dropdown-item small" href="#" id="menuAiConfig"><i class="fa-solid fa-sliders me-2 text-muted"></i> AI Providers & Fallback</a></li>
+              <li><a class="dropdown-item small" href="http://localhost:8080/h2-console" target="_blank"><i class="fa-solid fa-database me-2 text-muted"></i> H2 Database Console</a></li>
+              <li><hr class="dropdown-divider my-1"></li>
+              <li><a class="dropdown-item small text-danger" href="#" id="btnLogout"><i class="fa-solid fa-arrow-right-from-bracket me-2"></i> Sign Out</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- MOBILE BOTTOM NAVIGATION -->
+    <div class="mobile-nav d-flex d-md-none bg-white border-top fixed-bottom justify-content-around py-2 shadow-lg">
+      <button class="btn btn-link text-decoration-none text-muted nav-mobile active" data-view="dashboard">
+        <i class="fa-solid fa-chart-pie d-block fs-5"></i><span class="small">Dash</span>
+      </button>
+      <button class="btn btn-link text-decoration-none text-muted nav-mobile" data-view="invoices">
+        <i class="fa-solid fa-receipt d-block fs-5"></i><span class="small">Invoices</span>
+      </button>
+      <button class="btn btn-link text-decoration-none text-muted nav-mobile" data-view="ai-studio">
+        <i class="fa-solid fa-wand-magic-sparkles d-block fs-5 text-amber"></i><span class="small">AI</span>
+      </button>
+      <button class="btn btn-link text-decoration-none text-muted nav-mobile" data-view="clients">
+        <i class="fa-solid fa-users d-block fs-5"></i><span class="small">Clients</span>
+      </button>
+    </div>
+
+    <!-- MAIN VIEW AREA -->
+    <main class="flex-grow-1 p-3 p-md-4 mb-5 mb-md-0">
+      <div class="container-fluid p-0">
+
+        <!-- ========================================== -->
+        <!-- VIEW 1: DASHBOARD -->
+        <!-- ========================================== -->
+        <section id="viewDashboard" class="app-view">
+          <!-- Page Header -->
+          <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+            <div>
+              <h1 class="h3 fw-bold text-dark mb-1">Financial Overview & Invoices</h1>
+              <p class="text-muted small mb-0">Track revenue, monitor GST compliance, and manage automated collections.</p>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <button class="btn btn-gradient-ai text-white rounded-pill px-3 py-2 shadow-sm d-flex align-items-center gap-2" id="btnDashAiQuick">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                <span class="fw-semibold">Prompt-to-Invoice</span>
+              </button>
+              <button class="btn btn-primary rounded-pill px-3 py-2 shadow-sm d-flex align-items-center gap-2" id="btnDashNewInvoice">
+                <i class="fa-solid fa-plus"></i>
+                <span class="fw-semibold">Create Invoice</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 4 Stats Cards -->
+          <div class="row g-3 mb-4">
+            <!-- Card 1: Paid Revenue -->
+            <div class="col-12 col-sm-6 col-xl-3">
+              <div class="card stat-card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
+                <div class="card-body p-3 p-md-4 position-relative">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="text-secondary small fw-semibold text-uppercase tracking-wider">Collected Revenue</span>
+                    <div class="stat-icon-wrapper bg-success-subtle text-success rounded-3">
+                      <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                  </div>
+                  <h2 class="h3 fw-bold text-dark mb-1" id="statPaidRevenue">₹0.00</h2>
+                  <div class="d-flex align-items-center gap-2 small">
+                    <span class="badge bg-success-subtle text-success rounded-pill px-2 py-0" id="statPaidCount">0 Paid</span>
+                    <span class="text-muted">Cleared in Bank</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 2: Pending (Sent) -->
+            <div class="col-12 col-sm-6 col-xl-3">
+              <div class="card stat-card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
+                <div class="card-body p-3 p-md-4 position-relative">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="text-secondary small fw-semibold text-uppercase tracking-wider">Pending Receivables</span>
+                    <div class="stat-icon-wrapper bg-primary-subtle text-primary rounded-3">
+                      <i class="fa-solid fa-paper-plane"></i>
+                    </div>
+                  </div>
+                  <h2 class="h3 fw-bold text-dark mb-1" id="statPendingRevenue">₹0.00</h2>
+                  <div class="d-flex align-items-center gap-2 small">
+                    <span class="badge bg-primary-subtle text-primary rounded-pill px-2 py-0" id="statSentCount">0 Sent</span>
+                    <span class="text-muted">Awaiting Payment</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 3: Overdue -->
+            <div class="col-12 col-sm-6 col-xl-3">
+              <div class="card stat-card border-0 shadow-sm rounded-4 h-100 overflow-hidden border-start border-danger border-4">
+                <div class="card-body p-3 p-md-4 position-relative">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="text-secondary small fw-semibold text-uppercase tracking-wider">Overdue Payments</span>
+                    <div class="stat-icon-wrapper bg-danger-subtle text-danger rounded-3">
+                      <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                  </div>
+                  <h2 class="h3 fw-bold text-danger mb-1" id="statOverdueRevenue">₹0.00</h2>
+                  <div class="d-flex align-items-center gap-2 small">
+                    <span class="badge bg-danger-subtle text-danger rounded-pill px-2 py-0" id="statOverdueCount">0 Overdue</span>
+                    <span class="text-muted">Needs Attention</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 4: Total Invoices & Clients -->
+            <div class="col-12 col-sm-6 col-xl-3">
+              <div class="card stat-card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
+                <div class="card-body p-3 p-md-4 position-relative">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="text-secondary small fw-semibold text-uppercase tracking-wider">Active Pipeline</span>
+                    <div class="stat-icon-wrapper bg-info-subtle text-info rounded-3">
+                      <i class="fa-solid fa-layer-group"></i>
+                    </div>
+                  </div>
+                  <h2 class="h3 fw-bold text-dark mb-1" id="statTotalInvoices">0</h2>
+                  <div class="d-flex align-items-center gap-2 small">
+                    <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-0" id="statDraftCount">0 Drafts</span>
+                    <span class="text-muted" id="statClientCount">across 0 clients</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Charts Row -->
+          <div class="row g-3 mb-4">
+            <div class="col-12 col-lg-8">
+              <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white border-0 pt-4 px-4 pb-0 d-flex justify-content-between align-items-center">
+                  <div>
+                    <h2 class="h6 fw-bold text-dark mb-0">Revenue & Billing Trend</h2>
+                    <span class="small text-muted">Monthly billing distribution</span>
+                  </div>
+                  <span class="badge bg-light text-secondary border px-2 py-1">INR (₹)</span>
+                </div>
+                <div class="card-body p-4">
+                  <div style="height: 250px;">
+                    <canvas id="revenueChart"></canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-12 col-lg-4">
+              <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+                  <h2 class="h6 fw-bold text-dark mb-0">Status Breakdown</h2>
+                  <span class="small text-muted">Invoice lifecycle distribution</span>
+                </div>
+                <div class="card-body p-4 d-flex align-items-center justify-content-center">
+                  <div style="height: 220px; width: 100%;">
+                    <canvas id="statusDonutChart"></canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Invoices Table Card -->
+          <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="card-header bg-white border-0 p-4 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
+              <div>
+                <h2 class="h6 fw-bold text-dark mb-0">Recent Invoices</h2>
+                <span class="small text-muted">Latest billing activities and actions</span>
+              </div>
+              <button class="btn btn-light btn-sm rounded-pill px-3 border" data-view="invoices">
+                View All Invoices <i class="fa-solid fa-arrow-right ms-1"></i>
+              </button>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0" id="recentInvoicesTable">
+                <thead class="bg-light text-muted small text-uppercase">
+                  <tr>
+                    <th class="ps-4">Invoice #</th>
+                    <th>Client</th>
+                    <th>Issue Date</th>
+                    <th>Due Date</th>
+                    <th>Total (incl. GST)</th>
+                    <th>Status</th>
+                    <th class="text-end pe-4">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="small" id="recentInvoicesBody">
+                  <tr><td colspan="7" class="text-center py-4 text-muted">Loading recent invoices...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- VIEW 2: INVOICES MANAGER -->
+        <!-- ========================================== -->
+        <section id="viewInvoices" class="app-view d-none">
+          <!-- Page Header -->
+          <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+            <div>
+              <h1 class="h3 fw-bold text-dark mb-1">Invoices Management</h1>
+              <p class="text-muted small mb-0">Manage, export PDF, calculate GST, and track collection workflows.</p>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <button class="btn btn-gradient-ai text-white rounded-pill px-3 py-2 shadow-sm d-flex align-items-center gap-2" id="btnInvoicesAiPrompt">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                <span class="fw-semibold">AI Prompt Creator</span>
+              </button>
+              <button class="btn btn-primary rounded-pill px-3 py-2 shadow-sm d-flex align-items-center gap-2" id="btnInvoicesNew">
+                <i class="fa-solid fa-plus"></i>
+                <span class="fw-semibold">New Invoice</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Filter & Search Bar -->
+          <div class="card border-0 shadow-sm rounded-4 mb-4 p-3">
+            <div class="row g-2 align-items-center justify-content-between">
+              <!-- Filter Tabs -->
+              <div class="col-12 col-md-auto">
+                <div class="btn-group p-1 bg-light rounded-pill" role="group" id="invoiceStatusFilters">
+                  <button type="button" class="btn btn-sm btn-filter active rounded-pill px-3" data-status="">All</button>
+                  <button type="button" class="btn btn-sm btn-filter rounded-pill px-3" data-status="DRAFT">Draft</button>
+                  <button type="button" class="btn btn-sm btn-filter rounded-pill px-3" data-status="SENT">Sent</button>
+                  <button type="button" class="btn btn-sm btn-filter rounded-pill px-3" data-status="PAID">Paid</button>
+                  <button type="button" class="btn btn-sm btn-filter rounded-pill px-3" data-status="OVERDUE">Overdue</button>
+                </div>
+              </div>
+
+              <!-- Search Box -->
+              <div class="col-12 col-md-4">
+                <div class="input-group">
+                  <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
+                  <input type="text" id="invoiceSearchInput" class="form-control bg-light border-start-0" placeholder="Search by invoice # or client...">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- All Invoices Table -->
+          <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0" id="allInvoicesTable">
+                <thead class="bg-light text-muted small text-uppercase">
+                  <tr>
+                    <th class="ps-4">Invoice #</th>
+                    <th>Client</th>
+                    <th>Issue Date</th>
+                    <th>Due Date</th>
+                    <th>Tax Type</th>
+                    <th>Subtotal</th>
+                    <th>GST</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th class="text-end pe-4">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="small" id="allInvoicesBody">
+                  <tr><td colspan="10" class="text-center py-5 text-muted">Loading invoices...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- VIEW 3: AI STUDIO (STAR FEATURE) -->
+        <!-- ========================================== -->
+        <section id="viewAiStudio" class="app-view d-none">
+          <!-- Page Header -->
+          <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+            <div>
+              <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-3 py-1">
+                  <i class="fa-solid fa-bolt me-1"></i> Gemini 2.5 Flash + ChatGPT Fallback
+                </span>
+              </div>
+              <h1 class="h3 fw-bold text-dark mb-1">AI Invoice Generation Studio</h1>
+              <p class="text-muted small mb-0">Describe any billing scenario in plain English. AI extracts client details, line items, rates, and Indian GST rules.</p>
+            </div>
+            <button class="btn btn-outline-secondary rounded-pill px-3 py-2 btn-sm" id="btnAiStudioConfig">
+              <i class="fa-solid fa-sliders me-1"></i> Fallback Settings
+            </button>
+          </div>
+
+          <div class="row g-4">
+            <!-- Left: Prompt Card -->
+            <div class="col-12 col-lg-6">
+              <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+                <h2 class="h6 fw-bold text-dark mb-2 d-flex align-items-center gap-2">
+                  <i class="fa-solid fa-terminal text-primary"></i> Natural Language Billing Prompt
+                </h2>
+                <p class="small text-muted mb-3">
+                  Type what you want to bill. Mention client name, hours or quantities, rates, state, and payment deadline.
+                </p>
+
+                <div class="mb-3">
+                  <textarea id="aiPromptTextarea" class="form-control rounded-3 p-3 font-monospace small bg-light" rows="6" placeholder="e.g. Invoice Wipro in Bangalore for 50 hours of Spring Boot microservices backend development at ₹3000/hour, 18% GST, payment due in 14 days"></textarea>
+                </div>
+
+                <!-- Example Prompt Pills -->
+                <div class="mb-4">
+                  <span class="small fw-semibold text-secondary d-block mb-2">Try one-click sample prompts:</span>
+                  <div class="d-flex flex-wrap gap-2">
+                    <button type="button" class="btn btn-sm btn-light border rounded-pill prompt-sample-pill" data-prompt="Invoice Infosys in Bangalore for 40 hours of Spring Boot backend API architecture at ₹3000/hr and 20 hours of UI design at ₹2000/hr, 18% GST, payment due in 15 days.">
+                      💻 Full-Stack Development
+                    </button>
+                    <button type="button" class="btn btn-sm btn-light border rounded-pill prompt-sample-pill" data-prompt="Bill Acme Corp for 1 Enterprise Software License at ₹85,000 and 10 hours of premium onboarding support at ₹2500/hr, 18% GST, due in 30 days.">
+                      🏢 Enterprise Software
+                    </button>
+                    <button type="button" class="btn btn-sm btn-light border rounded-pill prompt-sample-pill" data-prompt="Invoice TechNova Labs in Mumbai for Cloud Security Audit and Penetration Testing report ₹65,000, 18% GST, due on receipt.">
+                      🔒 Security Audit (Mumbai)
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Fallback Simulation Switch for Presentation Demo -->
+                <div class="form-check form-switch p-3 bg-light rounded-3 mb-3 border">
+                  <input class="form-check-input ms-0 me-3" type="checkbox" id="aiSimulateFallback">
+                  <label class="form-check-label small fw-semibold text-dark" for="aiSimulateFallback">
+                    Simulate Gemini Failure (Demo Fallback Provider)
+                  </label>
+                  <div class="form-text small text-muted">
+                    Bypasses Gemini to showcase ChatGPT / local heuristic fallback during presentation.
+                  </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="button" class="btn btn-gradient-ai text-white w-100 py-3 rounded-pill fw-semibold shadow-sm d-flex align-items-center justify-content-center gap-2" id="btnExecuteAiPrompt">
+                  <i class="fa-solid fa-wand-magic-sparkles"></i>
+                  <span>Generate Invoice with AI</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Right: AI Generated Preview Card -->
+            <div class="col-12 col-lg-6">
+              <div class="card border-0 shadow-sm rounded-4 p-4 h-100 position-relative" id="aiResultCard">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h2 class="h6 fw-bold text-dark mb-0">Extracted Structured Invoice</h2>
+                  <div id="aiProviderBadge" class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-1">
+                    Ready
+                  </div>
+                </div>
+
+                <!-- Loading State (hidden by default) -->
+                <div id="aiLoadingIndicator" class="d-none text-center py-5 my-auto">
+                  <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                  <h6 class="fw-bold text-dark">Invoking AI Engine...</h6>
+                  <p class="small text-muted mb-0">Evaluating prompt with Google Gemini 2.5 Flash (fallback to ChatGPT on error)</p>
+                </div>
+
+                <!-- Empty State -->
+                <div id="aiEmptyState" class="text-center py-5 my-auto text-muted">
+                  <i class="fa-solid fa-file-invoice text-secondary opacity-25 display-4 mb-3"></i>
+                  <p class="small mb-0">No invoice generated yet.<br>Type a prompt on the left and click <strong>Generate Invoice with AI</strong>.</p>
+                </div>
+
+                <!-- Result Content (hidden until generated) -->
+                <div id="aiResultContent" class="d-none">
+                  <div class="p-3 bg-light rounded-3 mb-3 border">
+                    <div class="row g-2 small">
+                      <div class="col-6">
+                        <span class="text-muted d-block">Client Name:</span>
+                        <strong class="text-dark" id="aiResClient">Acme Corp</strong>
+                      </div>
+                      <div class="col-6">
+                        <span class="text-muted d-block">State:</span>
+                        <strong class="text-dark" id="aiResState">Karnataka</strong>
+                      </div>
+                      <div class="col-6">
+                        <span class="text-muted d-block">Issue Date:</span>
+                        <span id="aiResIssueDate">2026-11-05</span>
+                      </div>
+                      <div class="col-6">
+                        <span class="text-muted d-block">Due Date:</span>
+                        <span id="aiResDueDate">2026-11-20</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <h6 class="fw-bold text-dark small text-uppercase mb-2">Parsed Line Items</h6>
+                  <div class="table-responsive mb-3">
+                    <table class="table table-sm table-bordered align-middle small mb-0">
+                      <thead class="bg-light">
+                        <tr>
+                          <th>Item Description</th>
+                          <th class="text-end">Qty</th>
+                          <th class="text-end">Rate</th>
+                          <th class="text-end">GST %</th>
+                        </tr>
+                      </thead>
+                      <tbody id="aiResItemsBody"></tbody>
+                    </table>
+                  </div>
+
+                  <div class="p-3 bg-primary-subtle rounded-3 mb-4">
+                    <span class="small text-muted d-block">AI Suggested Payment Terms:</span>
+                    <span class="small text-dark fst-italic" id="aiResNotes"></span>
+                  </div>
+
+                  <!-- Action Buttons -->
+                  <div class="d-flex gap-2">
+                    <button class="btn btn-primary flex-grow-1 rounded-pill py-2 fw-semibold" id="btnAiApplyToInvoice">
+                      <i class="fa-solid fa-check me-1"></i> Apply & Save as Invoice
+                    </button>
+                    <button class="btn btn-outline-secondary rounded-pill py-2 px-3" id="btnAiEditForm">
+                      <i class="fa-solid fa-pen-to-square me-1"></i> Edit Details
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- VIEW 4: CLIENTS MANAGER -->
+        <!-- ========================================== -->
+        <section id="viewClients" class="app-view d-none">
+          <!-- Page Header -->
+          <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+            <div>
+              <h1 class="h3 fw-bold text-dark mb-1">Client Directory</h1>
+              <p class="text-muted small mb-0">Clients, GSTINs, and State designations for intra-state vs inter-state tax logic.</p>
+            </div>
+            <button class="btn btn-primary rounded-pill px-3 py-2 shadow-sm d-flex align-items-center gap-2" id="btnNewClient">
+              <i class="fa-solid fa-user-plus"></i>
+              <span class="fw-semibold">Add New Client</span>
+            </button>
+          </div>
+
+          <!-- Clients Table -->
+          <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0" id="clientsTable">
+                <thead class="bg-light text-muted small text-uppercase">
+                  <tr>
+                    <th class="ps-4">Client Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>State</th>
+                    <th>GSTIN</th>
+                    <th>Address</th>
+                    <th class="text-end pe-4">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="small" id="clientsTableBody">
+                  <tr><td colspan="7" class="text-center py-5 text-muted">Loading clients...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+
+  <!-- ======================================================== -->
+  <!-- MODAL 1: CREATE / EDIT INVOICE MODAL -->
+  <!-- ======================================================== -->
+  <div class="modal fade" id="invoiceModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content border-0 shadow-2xl rounded-4">
+        <div class="modal-header bg-gradient-brand text-white border-0 px-4 py-3">
+          <h2 class="modal-title h5 fw-bold d-flex align-items-center gap-2" id="invoiceModalTitle">
+            <i class="fa-solid fa-file-invoice"></i> Create New Invoice
+          </h2>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body p-4">
+          <form id="invoiceForm">
+            <input type="hidden" id="invFormId">
+
+            <!-- Client & Dates -->
+            <div class="card border bg-light p-3 rounded-3 mb-4">
+              <div class="row g-3">
+                <div class="col-12 col-md-4">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <label class="form-label small fw-semibold text-secondary mb-0">Select Client *</label>
+                    <button type="button" class="btn btn-link btn-sm p-0 text-primary small text-decoration-none" id="btnQuickAddClient">
+                      + Add New Client
+                    </button>
+                  </div>
+                  <select id="invClientId" class="form-select bg-white" required>
+                    <option value="">-- Choose Client --</option>
+                  </select>
+                </div>
+
+                <div class="col-12 col-md-4">
+                  <label class="form-label small fw-semibold text-secondary mb-1">Issue Date *</label>
+                  <input type="date" id="invIssueDate" class="form-control bg-white" required>
+                </div>
+
+                <div class="col-12 col-md-4">
+                  <label class="form-label small fw-semibold text-secondary mb-1">Due Date *</label>
+                  <input type="date" id="invDueDate" class="form-control bg-white" required>
+                </div>
+              </div>
+
+              <!-- GST State Notice Banner -->
+              <div class="mt-3 p-2 bg-white rounded-2 border d-flex align-items-center justify-content-between small" id="taxCalculationBanner">
+                <div class="d-flex align-items-center gap-2">
+                  <i class="fa-solid fa-calculator text-primary"></i>
+                  <span id="taxBannerText">Select a client to calculate intra-state vs inter-state GST</span>
+                </div>
+                <span class="badge bg-light text-secondary border" id="taxBannerBadge">Auto-GST</span>
+              </div>
+            </div>
+
+            <!-- Dynamic Line Items -->
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h6 class="fw-bold text-dark mb-0">Invoice Line Items</h6>
+              <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3" id="btnAddItemRow">
+                <i class="fa-solid fa-plus me-1"></i> Add Item Row
+              </button>
+            </div>
+
+            <div class="table-responsive mb-3">
+              <table class="table table-bordered align-middle small mb-0" id="invItemsTable">
+                <thead class="bg-light text-secondary">
+                  <tr>
+                    <th style="min-width: 320px;">Item Description & AI Enhancer</th>
+                    <th style="width: 100px;">Qty</th>
+                    <th style="width: 130px;">Rate (₹)</th>
+                    <th style="width: 110px;">GST %</th>
+                    <th style="width: 130px;" class="text-end">Amount (₹)</th>
+                    <th style="width: 50px;" class="text-center">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="invItemsBody">
+                  <!-- Row 1 populated via JS -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Notes & Summary -->
+            <div class="row g-4">
+              <div class="col-12 col-md-7">
+                <label class="form-label small fw-semibold text-secondary">Payment Terms & Notes</label>
+                <textarea id="invNotes" class="form-control bg-light" rows="4" placeholder="Enter bank transfer details, payment terms, or custom notes..."></textarea>
+              </div>
+
+              <div class="col-12 col-md-5">
+                <div class="card border bg-light p-3 rounded-3">
+                  <div class="d-flex justify-content-between py-1 small">
+                    <span class="text-secondary">Subtotal:</span>
+                    <strong class="text-dark" id="calcSubtotal">₹0.00</strong>
+                  </div>
+                  <div class="d-flex justify-content-between py-1 small" id="calcCgstRow">
+                    <span class="text-secondary">CGST:</span>
+                    <span class="text-dark" id="calcCgst">₹0.00</span>
+                  </div>
+                  <div class="d-flex justify-content-between py-1 small" id="calcSgstRow">
+                    <span class="text-secondary">SGST:</span>
+                    <span class="text-dark" id="calcSgst">₹0.00</span>
+                  </div>
+                  <div class="d-flex justify-content-between py-1 small" id="calcIgstRow">
+                    <span class="text-secondary">IGST:</span>
+                    <span class="text-dark" id="calcIgst">₹0.00</span>
+                  </div>
+                  <hr class="my-2">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <span class="fw-bold text-dark">Grand Total:</span>
+                    <h5 class="fw-bold text-primary mb-0" id="calcTotal">₹0.00</h5>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <div class="modal-footer bg-light border-0 px-4 py-3">
+          <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary rounded-pill px-4 fw-semibold" id="btnSaveInvoice">
+            <i class="fa-solid fa-floppy-disk me-1"></i> Save Invoice
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ======================================================== -->
+  <!-- MODAL 2: INVOICE PREVIEW & PRINT / PDF MODAL -->
+  <!-- ======================================================== -->
+  <div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content border-0 shadow-2xl rounded-4">
+        <div class="modal-header bg-white border-bottom px-4 py-3 d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center gap-2">
+            <h2 class="modal-title h5 fw-bold text-dark mb-0">Invoice Preview</h2>
+            <span class="badge bg-success-subtle text-success rounded-pill px-3 py-1" id="previewStatusBadge">PAID</span>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <button class="btn btn-outline-primary btn-sm rounded-pill px-3" id="btnPrintInvoice">
+              <i class="fa-solid fa-print me-1"></i> Print / Save PDF
+            </button>
+            <button class="btn btn-primary btn-sm rounded-pill px-3" id="btnDownloadServerPdf">
+              <i class="fa-solid fa-download me-1"></i> Server PDF
+            </button>
+            <button type="button" class="btn-close ms-2" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+        </div>
+
+        <div class="modal-body p-4 bg-light">
+          <!-- Printable Invoice Sheet -->
+          <div class="invoice-sheet bg-white p-4 p-md-5 rounded-3 shadow-sm border" id="printableInvoiceSheet">
+            <!-- Sheet Header -->
+            <div class="d-flex justify-content-between align-items-start border-bottom pb-4 mb-4">
+              <div>
+                <h3 class="h4 fw-bold text-primary mb-1" id="prevBizName">Nivuna Cloud Innovations</h3>
+                <div class="text-secondary small" id="prevBizGstin">GSTIN: 29ABCDE1234F1Z5</div>
+                <div class="text-secondary small" id="prevBizState">State: Karnataka</div>
+                <div class="text-secondary small" id="prevBizEmail">Email: billing@nivunacloud.com</div>
+              </div>
+              <div class="text-end">
+                <h4 class="h3 fw-bold text-dark mb-1">TAX INVOICE</h4>
+                <div class="fw-bold text-primary" id="prevInvoiceNumber">INV-0001</div>
+                <div class="small text-muted" id="prevIssueDate">Issue Date: 05 Nov 2026</div>
+                <div class="small text-muted" id="prevDueDate">Due Date: 20 Nov 2026</div>
+              </div>
+            </div>
+
+            <!-- Sheet Billed To & Supply Info -->
+            <div class="row g-3 mb-4">
+              <div class="col-6">
+                <span class="text-uppercase small fw-bold text-muted d-block mb-1">Billed To:</span>
+                <strong class="text-dark d-block" id="prevClientName">Acme Corp</strong>
+                <div class="small text-secondary" id="prevClientEmail">billing@acme.com</div>
+                <div class="small text-secondary" id="prevClientPhone">+91 98765 43210</div>
+                <div class="small text-secondary" id="prevClientGstin">GSTIN: 29AAAAA0000A1Z5</div>
+                <div class="small text-secondary" id="prevClientAddress">123 Tech Park, Bengaluru</div>
+              </div>
+              <div class="col-6 text-end">
+                <span class="text-uppercase small fw-bold text-muted d-block mb-1">Tax Classification:</span>
+                <strong class="text-dark d-block" id="prevPlaceOfSupply">Place of Supply: Karnataka</strong>
+                <span class="badge bg-light text-secondary border" id="prevTaxType">Intra-State (CGST + SGST)</span>
+              </div>
+            </div>
+
+            <!-- Items Table -->
+            <div class="table-responsive mb-4">
+              <table class="table table-bordered align-middle small mb-0">
+                <thead class="bg-light text-secondary">
+                  <tr>
+                    <th style="width: 40px;" class="text-center">#</th>
+                    <th>Item & Description</th>
+                    <th style="width: 60px;" class="text-end">Qty</th>
+                    <th style="width: 100px;" class="text-end">Rate (₹)</th>
+                    <th style="width: 80px;" class="text-end">GST %</th>
+                    <th style="width: 110px;" class="text-end">Amount (₹)</th>
+                  </tr>
+                </thead>
+                <tbody id="prevItemsBody"></tbody>
+              </table>
+            </div>
+
+            <!-- Totals & Notes -->
+            <div class="row g-3">
+              <div class="col-7">
+                <span class="text-uppercase small fw-bold text-muted d-block mb-1">Terms & Notes:</span>
+                <p class="small text-secondary mb-0" id="prevNotes">Payment due within 15 days via bank transfer.</p>
+              </div>
+              <div class="col-5">
+                <div class="d-flex justify-content-between py-1 small">
+                  <span class="text-muted">Subtotal:</span>
+                  <strong class="text-dark" id="prevSubtotal">₹0.00</strong>
+                </div>
+                <div class="d-flex justify-content-between py-1 small" id="prevCgstRow">
+                  <span class="text-muted">CGST:</span>
+                  <span class="text-dark" id="prevCgst">₹0.00</span>
+                </div>
+                <div class="d-flex justify-content-between py-1 small" id="prevSgstRow">
+                  <span class="text-muted">SGST:</span>
+                  <span class="text-dark" id="prevSgst">₹0.00</span>
+                </div>
+                <div class="d-flex justify-content-between py-1 small" id="prevIgstRow">
+                  <span class="text-muted">IGST:</span>
+                  <span class="text-dark" id="prevIgst">₹0.00</span>
+                </div>
+                <hr class="my-2">
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="fw-bold text-dark">Grand Total:</span>
+                  <h5 class="fw-bold text-primary mb-0" id="prevGrandTotal">₹0.00</h5>
+                </div>
+              </div>
+            </div>
+
+            <div class="border-top mt-5 pt-3 text-center small text-muted">
+              Thank you for your business! • Generated by InvoxAI
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ======================================================== -->
+  <!-- MODAL 3: ADD NEW CLIENT MODAL -->
+  <!-- ======================================================== -->
+  <div class="modal fade" id="clientModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-2xl rounded-4">
+        <div class="modal-header bg-gradient-brand text-white border-0 px-4 py-3">
+          <h2 class="modal-title h5 fw-bold d-flex align-items-center gap-2">
+            <i class="fa-solid fa-user-plus"></i> Add New Client
+          </h2>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <form id="clientForm">
+            <div class="mb-3">
+              <label class="form-label small fw-semibold text-secondary">Client / Company Name *</label>
+              <input type="text" id="clientName" class="form-control" placeholder="e.g. Wipro Limited" required>
+            </div>
+            <div class="row g-2 mb-3">
+              <div class="col-6">
+                <label class="form-label small fw-semibold text-secondary">Email</label>
+                <input type="email" id="clientEmail" class="form-control" placeholder="billing@client.com">
+              </div>
+              <div class="col-6">
+                <label class="form-label small fw-semibold text-secondary">Phone</label>
+                <input type="text" id="clientPhone" class="form-control" placeholder="+91 98765 43210">
+              </div>
+            </div>
+            <div class="row g-2 mb-3">
+              <div class="col-6">
+                <label class="form-label small fw-semibold text-secondary">State *</label>
+                <select id="clientState" class="form-select state-dropdown" required>
+                  <option value="Karnataka">Karnataka</option>
+                  <option value="Maharashtra">Maharashtra</option>
+                  <option value="Delhi">Delhi</option>
+                  <option value="Tamil Nadu">Tamil Nadu</option>
+                  <option value="Telangana">Telangana</option>
+                  <option value="Gujarat">Gujarat</option>
+                  <option value="Uttar Pradesh">Uttar Pradesh</option>
+                  <option value="West Bengal">West Bengal</option>
+                  <option value="Kerala">Kerala</option>
+                  <option value="Rajasthan">Rajasthan</option>
+                  <option value="Haryana">Haryana</option>
+                  <option value="Andhra Pradesh">Andhra Pradesh</option>
+                </select>
+              </div>
+              <div class="col-6">
+                <label class="form-label small fw-semibold text-secondary">GSTIN</label>
+                <input type="text" id="clientGstin" class="form-control text-uppercase" placeholder="29AAAAA0000A1Z5">
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-semibold text-secondary">Billing Address</label>
+              <textarea id="clientAddress" class="form-control" rows="2" placeholder="Suite / Floor, Tech Park, City, PIN"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 py-2 rounded-pill fw-semibold shadow-sm">
+              <i class="fa-solid fa-check me-1"></i> Save Client
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ======================================================== -->
+  <!-- MODAL 4: AI PAYMENT REMINDER MODAL -->
+  <!-- ======================================================== -->
+  <div class="modal fade" id="reminderModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-2xl rounded-4">
+        <div class="modal-header bg-gradient-ai text-white border-0 px-4 py-3">
+          <h2 class="modal-title h5 fw-bold d-flex align-items-center gap-2">
+            <i class="fa-solid fa-bell"></i> AI Payment Reminder Generator
+          </h2>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <input type="hidden" id="reminderInvoiceId">
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold text-secondary">Select Reminder Tone:</label>
+            <div class="btn-group w-100" role="group">
+              <input type="radio" class="btn-check" name="reminderTone" id="tonePolite" value="polite" checked>
+              <label class="btn btn-outline-primary btn-sm py-2" for="tonePolite">Friendly</label>
+
+              <input type="radio" class="btn-check" name="reminderTone" id="toneFormal" value="formal">
+              <label class="btn btn-outline-primary btn-sm py-2" for="toneFormal">Formal</label>
+
+              <input type="radio" class="btn-check" name="reminderTone" id="toneUrgent" value="urgent">
+              <label class="btn btn-outline-primary btn-sm py-2" for="toneUrgent">Urgent / Overdue</label>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold text-secondary">Subject Line:</label>
+            <input type="text" id="reminderSubject" class="form-control bg-light" readonly>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold text-secondary">Message Content:</label>
+            <textarea id="reminderBody" class="form-control bg-light font-monospace small" rows="8"></textarea>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center">
+            <span class="small text-muted" id="reminderProviderBadge">Gemini 2.5 Flash</span>
+            <button type="button" class="btn btn-primary rounded-pill px-4" id="btnCopyReminder">
+              <i class="fa-regular fa-copy me-1"></i> Copy to Clipboard
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ======================================================== -->
+  <!-- MODAL 5: AI SETTINGS & FALLBACK DEMO MODAL -->
+  <!-- ======================================================== -->
+  <div class="modal fade" id="aiConfigModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-2xl rounded-4">
+        <div class="modal-header bg-dark text-white border-0 px-4 py-3">
+          <h2 class="modal-title h5 fw-bold d-flex align-items-center gap-2">
+            <i class="fa-solid fa-sliders text-amber"></i> AI Providers & Fallback Engine
+          </h2>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <p class="small text-muted mb-3">
+            As specified in the assignment, this application implements a dual-tier resilient AI architecture with automatic failover.
+          </p>
+
+          <!-- Primary Provider Card -->
+          <div class="card border mb-3 p-3 rounded-3 bg-light">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <strong class="text-dark small"><i class="fa-brands fa-google text-primary me-1"></i> Tier 1 (Primary): Google Gemini</strong>
+              <span class="badge bg-success text-white rounded-pill px-2 py-0">ACTIVE</span>
+            </div>
+            <div class="small text-secondary mb-2">Model: <code>gemini-2.5-flash</code></div>
+            <div class="small text-muted">Primary generative model for natural language invoice extraction and descriptions.</div>
+          </div>
+
+          <!-- Fallback Provider Card -->
+          <div class="card border mb-3 p-3 rounded-3 bg-light">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <strong class="text-dark small"><i class="fa-solid fa-robot text-success me-1"></i> Tier 2 (Fallback): OpenAI ChatGPT</strong>
+              <span class="badge bg-primary text-white rounded-pill px-2 py-0">STANDBY</span>
+            </div>
+            <div class="small text-secondary mb-2">Model: <code>gpt-4o-mini</code></div>
+            <div class="small text-muted">Automatically invoked if Gemini API fails, times out, or hits rate limits.</div>
+          </div>
+
+          <!-- Tier 3 Offline Card -->
+          <div class="card border mb-4 p-3 rounded-3 bg-light">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <strong class="text-dark small"><i class="fa-solid fa-shield-halved text-secondary me-1"></i> Tier 3 (Offline Resilience): Smart Rule Parser</strong>
+              <span class="badge bg-secondary text-white rounded-pill px-2 py-0">READY</span>
+            </div>
+            <div class="small text-muted">Zero-dependency regex & NLP heuristics ensure 100% uptime even without internet.</div>
+          </div>
+
+          <div class="p-3 bg-light rounded-3 border">
+            <h6 class="small fw-bold text-dark mb-1">Presentation Live Demo Tip:</h6>
+            <p class="small text-muted mb-0">
+              Check the "Simulate Gemini Failure" toggle in the AI Studio view to demonstrate live automatic fallback to the evaluator.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap 5.3 JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <!-- Custom JS -->
+  <script src="app.js"></script>
+</body>
+</html>
