@@ -31,6 +31,11 @@ document.addEventListener('DOMContentLoaded', () => {
 // Initialization & Authentication
 // -------------------------------------------------------------
 function checkAuthAndInitialize() {
+  // Sessions saved before the business state was included must sign in again
+  if (state.user && state.user.state === undefined) {
+    logout();
+    return;
+  }
   if (state.token && state.user) {
     showApp();
     loadDashboard();
@@ -66,7 +71,8 @@ function setSession(authResponse) {
     name: authResponse.name,
     email: authResponse.email,
     businessName: authResponse.businessName,
-    state: authResponse.state || ''
+    state: authResponse.state || '',
+    gstin: authResponse.gstin || ''
   };
   localStorage.setItem('invox_token', state.token);
   localStorage.setItem('invox_user', JSON.stringify(state.user));

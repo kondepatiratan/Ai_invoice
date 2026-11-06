@@ -73,7 +73,9 @@ public class AuthService {
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
-                user.getBusinessName());
+                user.getBusinessName(),
+                user.getState(),
+                user.getGstin());
     }
 
     private static String normalizeEmail(String email) {
