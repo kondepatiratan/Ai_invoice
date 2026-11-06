@@ -286,14 +286,17 @@ function renderDashboardCharts(stats) {
     if (state.charts.status) state.charts.status.destroy();
 
     const counts = [stats.paidCount || 0, stats.sentCount || 0, stats.overdueCount || 0, stats.draftCount || 0];
+    const hasInvoices = counts.some(c => c > 0);
 
+    // A new account has no invoices: show one grey "No invoices yet" ring
+    // instead of fake equal segments that look like real data.
     state.charts.status = new Chart(ctxStatus, {
       type: 'doughnut',
       data: {
-        labels: ['Paid', 'Sent', 'Overdue', 'Draft'],
+        labels: hasInvoices ? ['Paid', 'Sent', 'Overdue', 'Draft'] : ['No invoices yet'],
         datasets: [{
-          data: counts.some(c => c > 0) ? counts : [1, 1, 1, 1],
-          backgroundColor: ['#10b981', '#3b82f6', '#ef4444', '#94a3b8'],
+          data: hasInvoices ? counts : [1],
+          backgroundColor: hasInvoices ? ['#10b981', '#3b82f6', '#ef4444', '#94a3b8'] : ['#e2e8f0'],
           borderWidth: 0
         }]
       },
@@ -305,7 +308,8 @@ function renderDashboardCharts(stats) {
           legend: {
             position: 'bottom',
             labels: { boxWidth: 12, font: { size: 11 } }
-          }
+          },
+          tooltip: { enabled: hasInvoices }
         }
       }
     });
