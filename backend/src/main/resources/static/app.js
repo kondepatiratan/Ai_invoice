@@ -214,7 +214,7 @@ function renderRecentInvoices(invoices) {
       <td>${renderStatusBadge(inv.status)}</td>
       <td class="text-end pe-4">
         <div class="dropdown d-inline-block">
-          <button class="btn btn-light btn-sm rounded-pill border px-2 py-1" type="button" data-bs-toggle="dropdown">
+          <button class="btn btn-light btn-sm rounded-pill border px-2 py-1" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}'>
             <i class="fa-solid fa-ellipsis-vertical"></i>
           </button>
           <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 small">
@@ -377,7 +377,7 @@ function renderAllInvoices() {
               <i class="fa-solid fa-download"></i>
             </button>
             <div class="btn-group">
-              <button class="btn btn-light btn-sm border dropdown-toggle" type="button" data-bs-toggle="dropdown"></button>
+              <button class="btn btn-light btn-sm border dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}'></button>
               <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 small">
                 ${inv.status === 'DRAFT' ? `
                   <li><a class="dropdown-item text-primary" href="javascript:void(0)" onclick="updateInvoiceStatus(${inv.id}, 'SENT')"><i class="fa-solid fa-paper-plane me-2"></i> Send Invoice</a></li>
