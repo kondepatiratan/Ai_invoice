@@ -58,7 +58,7 @@
 
 #### Step 1: Login & Dashboard Overview (1 Minute)
 1. Open browser to `http://localhost:8080/`.
-2. Click **"1-Click Demo Sign In"** to load the preloaded profile.
+2. Sign in with the prepared account (clients and invoices in every status created before the presentation).
 3. Highlight the 4 stat cards:
    - *Collected Revenue (Paid)*
    - *Pending Receivables (Sent)*

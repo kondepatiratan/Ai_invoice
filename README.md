@@ -75,21 +75,15 @@ Open a terminal in `D:\Ai_Invoice _genaretorer\backend`:
 mvn spring-boot:run
 ```
 
-The Spring Boot backend will build, auto-seed the demo database, and start on port **8080**.
+The Spring Boot backend will build and start on port **8080**.
 
 ### 4. Access the Web Application
 Open your browser and navigate to:
 👉 **[http://localhost:8080/](http://localhost:8080/)**
 
-### 5. Demo Login (1-Click)
-On the sign-in screen, click the **"1-Click Demo Sign In (Preloaded Data)"** button, or enter:
-- **Email**: `demo@invoice.ai`
-- **Password**: `password123`
-
-The preloaded profile includes:
-- **Business Profile**: Nivuna Cloud Innovations Pvt Ltd (Karnataka, GSTIN: `29ABCDE1234F1Z5`)
-- **Clients**: Acme Global Technologies (Karnataka), TechNova Labs (Maharashtra), Zenith Digital Media (Delhi)
-- **Invoices**: Samples in `PAID`, `SENT`, `OVERDUE`, and `DRAFT` statuses.
+### 5. Create Your Account
+Click **Register** and enter your business name, GSTIN and state. Your state decides whether invoices use
+CGST + SGST (same-state clients) or IGST (other-state clients). Then add a client and create your first invoice.
 
 ---
 
@@ -119,7 +113,6 @@ The preloaded profile includes:
 - `POST /api/clients`: Add a new client
 - `DELETE /api/clients/{id}`: Delete client
 - `GET /api/dashboard/stats`: Retrieve financial metrics, status counts, and revenue trends
-- `POST /api/seed`: Seed sample demo data
 
 ---
 

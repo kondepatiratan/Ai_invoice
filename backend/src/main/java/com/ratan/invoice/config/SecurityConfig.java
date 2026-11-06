@@ -54,7 +54,6 @@ public class SecurityConfig {
                                 "/assets/**",
                                 "/api/auth/**",
                                 "/api/health",
-                                "/api/seed",
                                 "/api/ai/health",
                                 "/h2-console/**"
                         ).permitAll()

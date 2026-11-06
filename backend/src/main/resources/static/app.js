@@ -1091,23 +1091,6 @@ function setupEventListeners() {
     }
   });
 
-  // 1-Click Demo Login
-  document.getElementById('btnDemoLogin').addEventListener('click', async () => {
-    try {
-      // Auto seed if database is clean
-      try { await fetch('/api/seed', { method: 'POST' }); } catch(e) {}
-
-      const res = await api('/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({ email: 'demo@invoice.ai', password: 'password123' })
-      });
-      setSession(res);
-      showToast('Signed in with preloaded demo profile!');
-    } catch (err) {
-      showToast(err.message, true);
-    }
-  });
-
   // Sign out
   document.getElementById('btnLogout').addEventListener('click', (e) => {
     e.preventDefault();
