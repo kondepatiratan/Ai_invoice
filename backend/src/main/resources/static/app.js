@@ -897,6 +897,12 @@ async function saveInvoice() {
     items
   };
 
+  // Block double clicks: without this, a second click while the first save
+  // is still running creates a second, identical invoice.
+  const saveBtn = document.getElementById('btnSaveInvoice');
+  if (saveBtn.disabled) return;
+  saveBtn.disabled = true;
+
   try {
     if (formId) {
       await api(`/invoices/${formId}`, {
@@ -917,6 +923,8 @@ async function saveInvoice() {
     loadInvoices();
   } catch (err) {
     showToast(err.message, true);
+  } finally {
+    saveBtn.disabled = false;
   }
 }
 
