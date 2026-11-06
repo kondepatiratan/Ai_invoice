@@ -24,6 +24,7 @@ public record RegisterRequest(
         @Size(max = 15, message = "GSTIN must be at most 15 characters")
         String gstin,
 
+        @NotBlank(message = "State is required (it decides CGST+SGST or IGST)")
         @Size(max = 100, message = "State must be at most 100 characters")
         String state
 ) {

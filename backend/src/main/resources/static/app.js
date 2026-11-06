@@ -22,6 +22,7 @@ const state = {
 
 // DOM Content Loaded Initializer
 document.addEventListener('DOMContentLoaded', () => {
+  populateStateDropdowns();
   setupEventListeners();
   checkAuthAndInitialize();
 });
@@ -65,7 +66,7 @@ function setSession(authResponse) {
     name: authResponse.name,
     email: authResponse.email,
     businessName: authResponse.businessName,
-    state: authResponse.state || 'Karnataka'
+    state: authResponse.state || ''
   };
   localStorage.setItem('invox_token', state.token);
   localStorage.setItem('invox_user', JSON.stringify(state.user));
@@ -205,8 +206,8 @@ function renderRecentInvoices(invoices) {
         ${inv.invoiceNumber}
       </td>
       <td>
-        <div class="fw-semibold text-dark">${inv.client ? inv.client.name : 'Unknown Client'}</div>
-        <div class="text-muted small">${inv.client && inv.client.state ? inv.client.state : ''}</div>
+        <div class="fw-semibold text-dark">${inv.client ? escapeHtml(inv.client.name) : 'Unknown Client'}</div>
+        <div class="text-muted small">${inv.client && inv.client.state ? escapeHtml(inv.client.state) : ''}</div>
       </td>
       <td>${formatDate(inv.issueDate)}</td>
       <td>${formatDate(inv.dueDate)}</td>
@@ -358,8 +359,8 @@ function renderAllInvoices() {
           ${inv.invoiceNumber}
         </td>
         <td>
-          <div class="fw-semibold text-dark">${inv.client ? inv.client.name : 'Unknown Client'}</div>
-          <div class="text-muted small">${inv.client && inv.client.email ? inv.client.email : ''}</div>
+          <div class="fw-semibold text-dark">${inv.client ? escapeHtml(inv.client.name) : 'Unknown Client'}</div>
+          <div class="text-muted small">${inv.client && inv.client.email ? escapeHtml(inv.client.email) : ''}</div>
         </td>
         <td>${formatDate(inv.issueDate)}</td>
         <td>${formatDate(inv.dueDate)}</td>
@@ -479,8 +480,8 @@ function displayAiGeneratedInvoice(data, elapsedSec) {
     badge.className = 'badge bg-secondary-subtle text-secondary rounded-pill px-3 py-1';
   }
 
-  document.getElementById('aiResClient').textContent = data.clientName || 'Acme Technologies';
-  document.getElementById('aiResState').textContent = data.clientState || 'Karnataka';
+  document.getElementById('aiResClient').textContent = data.clientName || 'Not detected';
+  document.getElementById('aiResState').textContent = data.clientState || 'Not detected';
   document.getElementById('aiResIssueDate').textContent = data.issueDate || 'Today';
   document.getElementById('aiResDueDate').textContent = data.dueDate || 'In 15 days';
   document.getElementById('aiResNotes').textContent = data.notes || 'Standard Net 15 terms.';
@@ -488,7 +489,7 @@ function displayAiGeneratedInvoice(data, elapsedSec) {
   const tbody = document.getElementById('aiResItemsBody');
   tbody.innerHTML = (data.items || []).map(item => `
     <tr>
-      <td>${item.description}</td>
+      <td>${escapeHtml(item.description)}</td>
       <td class="text-end">${item.quantity}</td>
       <td class="text-end">₹${item.rate}</td>
       <td class="text-end">${item.gstRate}%</td>
@@ -500,28 +501,24 @@ async function applyAiGeneratedToInvoice(autoSave = false) {
   if (!state.aiLastGenerated) return;
   const gen = state.aiLastGenerated;
 
-  // Check if client exists or create one
+  // Find the client by name. If it's new, never invent details: the client's
+  // state decides the GST type, so the owner confirms them in the client form.
   await loadClients();
-  let client = state.clients.find(c => c.name.toLowerCase() === gen.clientName.toLowerCase());
+  const genName = (gen.clientName || '').trim().toLowerCase();
+  let client = genName ? state.clients.find(c => c.name.trim().toLowerCase() === genName) : null;
 
   if (!client) {
-    try {
-      client = await api('/clients', {
-        method: 'POST',
-        body: JSON.stringify({
-          name: gen.clientName,
-          email: gen.clientEmail || `billing@${gen.clientName.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
-          phone: gen.clientPhone || '+91 98765 43210',
-          state: gen.clientState || 'Karnataka',
-          gstin: gen.clientGstin || '29AAAAA0000A1Z5',
-          address: gen.clientAddress || `${gen.clientState || 'Karnataka'}, India`
-        })
-      });
-      await loadClients();
-    } catch (e) {
-      console.warn('Could not auto-create client:', e);
-      client = state.clients[0];
-    }
+    state.pendingAiApply = autoSave;
+    document.getElementById('clientForm').reset();
+    document.getElementById('clientName').value = gen.clientName || '';
+    document.getElementById('clientEmail').value = gen.clientEmail || '';
+    document.getElementById('clientPhone').value = gen.clientPhone || '';
+    document.getElementById('clientState').value = matchState(gen.clientState);
+    document.getElementById('clientGstin').value = gen.clientGstin || '';
+    document.getElementById('clientAddress').value = gen.clientAddress || '';
+    new bootstrap.Modal(document.getElementById('clientModal')).show();
+    showToast('New client: please check the details (email and state are required), then save to continue.');
+    return;
   }
 
   // Populate Invoice Modal
@@ -570,12 +567,12 @@ function renderClientsTable() {
 
   tbody.innerHTML = state.clients.map(c => `
     <tr>
-      <td class="ps-4 fw-semibold text-dark">${c.name}</td>
-      <td>${c.email || '—'}</td>
-      <td>${c.phone || '—'}</td>
-      <td><span class="badge bg-light text-secondary border">${c.state || 'Karnataka'}</span></td>
-      <td class="font-monospace small">${c.gstin || '—'}</td>
-      <td class="small text-muted text-truncate" style="max-width: 200px;">${c.address || '—'}</td>
+      <td class="ps-4 fw-semibold text-dark">${escapeHtml(c.name)}</td>
+      <td>${escapeHtml(c.email || '—')}</td>
+      <td>${escapeHtml(c.phone || '—')}</td>
+      <td><span class="badge bg-light text-secondary border">${escapeHtml(c.state || '—')}</span></td>
+      <td class="font-monospace small">${escapeHtml(c.gstin || '—')}</td>
+      <td class="small text-muted text-truncate" style="max-width: 200px;">${escapeHtml(c.address || '—')}</td>
       <td class="text-end pe-4">
         <button class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="deleteClient(${c.id})">
           <i class="fa-solid fa-trash me-1"></i> Delete
@@ -592,7 +589,7 @@ function populateClientDropdown() {
 
   select.innerHTML = `<option value="">-- Choose Client --</option>` + 
     state.clients.map(c => `
-      <option value="${c.id}" data-state="${c.state || ''}">${c.name} (${c.state || 'N/A'})</option>
+      <option value="${c.id}" data-state="${escapeHtml(c.state || '')}">${escapeHtml(c.name)} (${escapeHtml(c.state || 'N/A')})</option>
     `).join('');
 
   if (currentVal) select.value = currentVal;
@@ -616,6 +613,14 @@ async function saveClient(e) {
     bootstrap.Modal.getInstance(document.getElementById('clientModal')).hide();
     document.getElementById('clientForm').reset();
     await loadClients();
+
+    // Continue an AI-generated invoice that was waiting for this client
+    if (state.pendingAiApply !== undefined && state.aiLastGenerated) {
+      const autoSave = state.pendingAiApply;
+      state.pendingAiApply = undefined;
+      state.aiLastGenerated.clientName = name;
+      await applyAiGeneratedToInvoice(autoSave);
+    }
   } catch (err) {
     showToast(err.message, true);
   }
@@ -782,7 +787,7 @@ function updateTaxNotice() {
 
   const selectedOpt = select.options[select.selectedIndex];
   const clientState = (selectedOpt.getAttribute('data-state') || '').trim().toLowerCase();
-  const userState = ((state.user && state.user.state) || 'Karnataka').trim().toLowerCase();
+  const userState = ((state.user && state.user.state) || '').trim().toLowerCase();
 
   const isIntraState = clientState === userState;
 
@@ -809,7 +814,7 @@ function recalculateInvoiceTotals() {
   if (select && select.value) {
     const selectedOpt = select.options[select.selectedIndex];
     const clientState = (selectedOpt.getAttribute('data-state') || '').trim().toLowerCase();
-    const userState = ((state.user && state.user.state) || 'Karnataka').trim().toLowerCase();
+    const userState = ((state.user && state.user.state) || '').trim().toLowerCase();
     isIntraState = clientState === userState;
   }
 
@@ -919,10 +924,10 @@ async function viewInvoicePreview(invoiceId) {
 
     document.getElementById('previewStatusBadge').outerHTML = renderStatusBadge(inv.status, 'previewStatusBadge');
 
-    const bizName = (state.user && state.user.businessName) || (state.user && state.user.name) || 'Nivuna Cloud Innovations';
+    const bizName = (state.user && state.user.businessName) || (state.user && state.user.name) || 'Your Business';
     document.getElementById('prevBizName').textContent = bizName;
     document.getElementById('prevBizGstin').textContent = 'GSTIN: ' + ((state.user && state.user.gstin) || '29ABCDE1234F1Z5');
-    document.getElementById('prevBizState').textContent = 'State: ' + ((state.user && state.user.state) || 'Karnataka');
+    document.getElementById('prevBizState').textContent = 'State: ' + ((state.user && state.user.state) || '—');
     document.getElementById('prevBizEmail').textContent = 'Email: ' + (state.user && state.user.email);
 
     document.getElementById('prevInvoiceNumber').textContent = inv.invoiceNumber;
@@ -937,7 +942,7 @@ async function viewInvoicePreview(invoiceId) {
     document.getElementById('prevClientAddress').textContent = client.address || '';
 
     const isIntraState = Number(inv.cgst || 0) > 0 || Number(inv.sgst || 0) > 0;
-    document.getElementById('prevPlaceOfSupply').textContent = 'Place of Supply: ' + (client.state || 'Karnataka');
+    document.getElementById('prevPlaceOfSupply').textContent = 'Place of Supply: ' + (client.state || '—');
     document.getElementById('prevTaxType').textContent = isIntraState ? 'Intra-State (CGST + SGST)' : 'Inter-State (IGST)';
 
     const tbody = document.getElementById('prevItemsBody');
@@ -1154,6 +1159,12 @@ function setupEventListeners() {
     new bootstrap.Modal(document.getElementById('clientModal')).show();
   });
   document.getElementById('clientForm').addEventListener('submit', saveClient);
+  document.getElementById('clientModal').addEventListener('hidden.bs.modal', () => {
+    if (state.pendingAiApply !== undefined) {
+      state.pendingAiApply = undefined;
+      showToast('Client not saved, so the AI invoice was not applied.', true);
+    }
+  });
 
   // Invoice Form
   document.getElementById('btnAddItemRow').addEventListener('click', () => addItemRow());
@@ -1221,9 +1232,34 @@ function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
+// All Indian states and union territories. The state decides CGST+SGST vs IGST,
+// so every business and client must be able to pick their real state.
+const INDIAN_STATES = [
+  'Andaman and Nicobar Islands', 'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar',
+  'Chandigarh', 'Chhattisgarh', 'Dadra and Nagar Haveli and Daman and Diu', 'Delhi', 'Goa',
+  'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jammu and Kashmir', 'Jharkhand', 'Karnataka',
+  'Kerala', 'Ladakh', 'Lakshadweep', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya',
+  'Mizoram', 'Nagaland', 'Odisha', 'Puducherry', 'Punjab', 'Rajasthan', 'Sikkim',
+  'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal'
+];
+
+function populateStateDropdowns() {
+  document.querySelectorAll('.state-dropdown').forEach(select => {
+    select.innerHTML = '<option value="">Select state</option>' +
+      INDIAN_STATES.map(s => `<option value="${s}">${s}</option>`).join('');
+  });
+}
+
+// Match an AI-extracted state like "karnataka " to the dropdown value "Karnataka"
+function matchState(raw) {
+  if (!raw) return '';
+  const wanted = raw.trim().toLowerCase();
+  return INDIAN_STATES.find(s => s.toLowerCase() === wanted) || '';
+}
+
 function escapeHtml(text) {
-  if (!text) return '';
-  return text
+  if (text === null || text === undefined) return '';
+  return String(text)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
