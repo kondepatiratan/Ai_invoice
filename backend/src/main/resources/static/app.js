@@ -388,6 +388,9 @@ function renderAllInvoices() {
                   <li><a class="dropdown-item text-primary" href="javascript:void(0)" onclick="openReminderModal(${inv.id})"><i class="fa-solid fa-wand-magic-sparkles me-2"></i> Generate AI Reminder</a></li>
                   <li><a class="dropdown-item text-success" href="javascript:void(0)" onclick="updateInvoiceStatus(${inv.id}, 'PAID')"><i class="fa-solid fa-check me-2"></i> Mark as Paid</a></li>
                 ` : ''}
+                ${inv.status === 'PAID' ? `
+                  <li><span class="dropdown-item-text text-muted small"><i class="fa-solid fa-lock me-2"></i> Paid invoices are locked</span></li>
+                ` : ''}
               </ul>
             </div>
           </div>
