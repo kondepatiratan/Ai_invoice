@@ -60,4 +60,18 @@ class AiInvoiceServiceTest {
         assertEquals("998314", res.hsnSacCode());
         assertEquals(new BigDecimal("18.00"), res.recommendedGstRate());
     }
+
+    @Test
+    void fallbackParserNeverInventsClientContactDetails() {
+        AiPromptRequest request = new AiPromptRequest("Invoice for Infosys for 10 hours of testing at 1500", null, null, true);
+        AiGeneratedInvoiceResponse response = aiInvoiceService.generateInvoice(request);
+
+        // The owner enters real details in the client form; the AI must not make them up
+        assertEquals("", response.clientEmail());
+        assertEquals("", response.clientPhone());
+        assertEquals("", response.clientGstin());
+        assertEquals("", response.clientAddress());
+        // State not mentioned, so it is left for the owner to choose (it decides CGST+SGST vs IGST)
+        assertEquals("", response.clientState());
+    }
 }

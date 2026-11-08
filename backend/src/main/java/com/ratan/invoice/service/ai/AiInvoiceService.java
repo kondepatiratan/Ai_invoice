@@ -247,7 +247,7 @@ public class AiInvoiceService {
         String systemInstruction = getInvoicePromptInstruction();
         String fullUserPrompt = systemInstruction + "\n\nUser Invoice Request: " + prompt;
 
-        String endpoint = String.format("%s/%s:generateContent?key=%s", geminiBaseUrl, geminiModel, apiKey);
+        String endpoint = String.format("%s/%s:generateContent", geminiBaseUrl, geminiModel);
 
         Map<String, Object> requestBody = Map.of(
                 "contents", List.of(
@@ -264,6 +264,8 @@ public class AiInvoiceService {
         HttpRequest httpRequest = HttpRequest.newBuilder()
                 .uri(URI.create(endpoint))
                 .header("Content-Type", "application/json")
+                // Key in a header, not the URL, so it never ends up in request logs
+                .header("x-goog-api-key", apiKey)
                 .timeout(Duration.ofSeconds(15))
                 .POST(HttpRequest.BodyPublishers.ofString(jsonPayload))
                 .build();
@@ -281,7 +283,7 @@ public class AiInvoiceService {
     }
 
     private String executeGeminiRaw(String prompt, String apiKey) throws Exception {
-        String endpoint = String.format("%s/%s:generateContent?key=%s", geminiBaseUrl, geminiModel, apiKey);
+        String endpoint = String.format("%s/%s:generateContent", geminiBaseUrl, geminiModel);
         Map<String, Object> requestBody = Map.of(
                 "contents", List.of(Map.of("parts", List.of(Map.of("text", prompt)))),
                 "generationConfig", Map.of("temperature", 0.2, "responseMimeType", "application/json")
@@ -289,6 +291,7 @@ public class AiInvoiceService {
         HttpRequest req = HttpRequest.newBuilder()
                 .uri(URI.create(endpoint))
                 .header("Content-Type", "application/json")
+                .header("x-goog-api-key", apiKey)
                 .timeout(Duration.ofSeconds(12))
                 .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(requestBody)))
                 .build();
@@ -369,11 +372,13 @@ public class AiInvoiceService {
         return "You are an intelligent billing and invoice generation AI assistant for India.\n"
                 + "Analyze the user's prompt and extract structured invoice details.\n"
                 + "Rules:\n"
-                + "1. Determine client information: clientName, clientEmail (synthesize standard like billing@domain if missing), clientPhone, clientGstin, clientState (e.g. Karnataka, Maharashtra), clientAddress.\n"
+                + "1. Determine client information: clientName, clientEmail, clientPhone, clientGstin, clientState (e.g. Karnataka, Maharashtra), clientAddress.\n"
+                + "   Only use details written in the user's request. If any of these is not given, return an empty string \"\".\n"
+                + "   Never invent an email, phone number, GSTIN or address: the owner fills them in before saving.\n"
                 + "2. Determine issueDate (default to today " + LocalDate.now() + " if unspecified).\n"
                 + "3. Determine dueDate (if 'due in X days' is mentioned, add X days to today, otherwise default to 15 days from today).\n"
                 + "4. Extract list of invoice items: description (clear, professional), quantity (number), rate (unit price in INR), gstRate (standard Indian GST slabs: 0, 5, 12, 18, 28; default 18 for software/consulting services), and hsnSacCode (e.g. 998314 for IT).\n"
-                + "5. Generate a professional notes section with payment terms.\n"
+                + "5. Generate a short professional notes section with payment terms. Never invent bank account numbers, IFSC codes, UPI IDs or late fees.\n"
                 + "Output MUST be a JSON object with this exact structure:\n"
                 + "{\n"
                 + "  \"clientName\": \"string\",\n"
@@ -415,7 +420,7 @@ public class AiInvoiceService {
         String clientEmail = root.path("clientEmail").asText("");
         String clientPhone = root.path("clientPhone").asText("");
         String clientGstin = root.path("clientGstin").asText("");
-        String clientState = root.path("clientState").asText("Karnataka");
+        String clientState = root.path("clientState").asText("");
         String clientAddress = root.path("clientAddress").asText("");
 
         LocalDate today = LocalDate.now();
@@ -493,8 +498,9 @@ public class AiInvoiceService {
             }
         }
 
-        // 2. Extract State (Detect common Indian states)
-        String clientState = "Karnataka";
+        // 2. Extract State (Detect common Indian states). Left empty if not mentioned,
+        // because the state decides CGST+SGST vs IGST, so the owner must confirm it.
+        String clientState = "";
         String[] states = {"Karnataka", "Maharashtra", "Delhi", "Tamil Nadu", "Telangana", "Gujarat", "Uttar Pradesh", "West Bengal", "Kerala", "Rajasthan"};
         for (String state : states) {
             if (lower.contains(state.toLowerCase(Locale.ROOT))) {
@@ -563,16 +569,13 @@ public class AiInvoiceService {
             ));
         }
 
-        String safeSlug = clientName.replaceAll("[^a-zA-Z0-9]", "").toLowerCase(Locale.ROOT);
-        String clientEmail = "billing@" + (safeSlug.isBlank() ? "client" : safeSlug) + ".com";
-
         return new AiGeneratedInvoiceResponse(
                 clientName,
-                clientEmail,
-                "+91 98765 43210",
-                "29AAACB1234F1Z5",
+                "", // email, phone, GSTIN and address are never invented;
+                "", // the owner enters the real ones in the client form
+                "",
                 clientState,
-                "Suite 400, Business Bay, " + clientState,
+                "",
                 today,
                 dueDate,
                 "Auto-extracted via AI Smart Fallback Engine. Payment due by " + dueDate.format(DateTimeFormatter.ofPattern("dd-MMM-yyyy")),
