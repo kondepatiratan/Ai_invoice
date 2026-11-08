@@ -3,6 +3,8 @@ package com.ratan.invoice.controller;
 import com.ratan.invoice.dto.ai.AiChatRequest;
 import com.ratan.invoice.dto.ai.AiChatResponse;
 import com.ratan.invoice.dto.ai.AiEnhanceRequest;
+import com.ratan.invoice.dto.ai.AiNotesRequest;
+import com.ratan.invoice.dto.ai.AiNotesResponse;
 import com.ratan.invoice.dto.ai.AiEnhanceResponse;
 import com.ratan.invoice.dto.ai.AiGeneratedInvoiceResponse;
 import com.ratan.invoice.dto.ai.AiPromptRequest;
@@ -55,6 +57,12 @@ public class AiController {
     @PostMapping("/chat")
     public AiChatResponse chat(@Valid @RequestBody AiChatRequest request) {
         return aiAssistantService.ask(request);
+    }
+
+    /** Drafts payment terms and notes for the invoice form. */
+    @PostMapping("/write-notes")
+    public AiNotesResponse writeNotes(@Valid @RequestBody AiNotesRequest request) {
+        return aiAssistantService.writeNotes(request);
     }
 
     @PostMapping("/reminder")

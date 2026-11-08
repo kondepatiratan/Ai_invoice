@@ -40,7 +40,12 @@
    - **Read-only and scoped:** it only sees the logged-in business's data and can't create, change, send or delete anything.
    - Same fallback chain: Gemini → ChatGPT → rule-based answers that work with no AI at all.
 
-8. **Interactive Analytics Dashboard**:
+8. **Company Settings, Client Details and AI Notes** (inspired by open-source invoicing apps like InvoiceShelf):
+   - **Company Settings** page to update business name, GSTIN and state. The state drives CGST + SGST vs IGST, and a change applies to new or re-saved invoices only.
+   - **Client detail view**: each client's invoices with billed, paid and outstanding totals, plus "New Invoice for this Client".
+   - **Write with AI** on the invoice's Payment Terms & Notes: drafts a short note with the amount and due date, never inventing bank details, UPI IDs or late fees. Falls back to a standard template.
+
+9. **Interactive Analytics Dashboard**:
    - Real-time revenue stat cards: **Collected Revenue (Paid)**, **Pending Receivables (Sent)**, **Overdue Alerts**, and **Active Pipeline**.
    - Chart.js interactive monthly revenue trend bar chart and invoice status donut chart.
 
@@ -105,6 +110,11 @@ CGST + SGST (same-state clients) or IGST (other-state clients). Then add a clien
 - `POST /api/ai/enhance-description`: Generate professional line-item description, SAC code, rate, and GST slab
 - `POST /api/ai/reminder`: Generate contextual payment follow-up email/WhatsApp message
 - `POST /api/ai/chat`: Ask a question about your own invoices and clients (read-only)
+- `POST /api/ai/write-notes`: Draft payment terms and notes for an invoice
+
+### Company Settings
+- `GET /api/profile`: Current business profile
+- `PUT /api/profile`: Update name, business name, GSTIN and state
 
 ### Invoices & Tax
 - `GET /api/invoices`: List all invoices (supports `?status=PAID|SENT|OVERDUE|DRAFT`)

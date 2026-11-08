@@ -178,6 +178,7 @@ function switchView(viewName) {
   if (viewName === 'dashboard') loadDashboard();
   else if (viewName === 'invoices') loadInvoices();
   else if (viewName === 'clients') loadClients();
+  else if (viewName === 'settings') loadSettings();
 }
 
 // -------------------------------------------------------------
@@ -712,13 +713,18 @@ function renderClientsTable() {
 
   tbody.innerHTML = state.clients.map(c => `
     <tr>
-      <td class="ps-4 fw-semibold text-dark">${escapeHtml(c.name)}</td>
+      <td class="ps-4">
+        <button type="button" class="btn btn-link p-0 fw-semibold text-dark text-decoration-none client-link" onclick="openClientDetail(${c.id})">${escapeHtml(c.name)}</button>
+      </td>
       <td>${escapeHtml(c.email || '—')}</td>
       <td>${escapeHtml(c.phone || '—')}</td>
       <td><span class="badge bg-light text-secondary border">${escapeHtml(c.state || '—')}</span></td>
       <td class="font-monospace small">${escapeHtml(c.gstin || '—')}</td>
       <td class="small text-muted text-truncate" style="max-width: 200px;">${escapeHtml(c.address || '—')}</td>
       <td class="text-end pe-4">
+        <button class="btn btn-outline-primary btn-sm rounded-pill px-3 me-1" onclick="openClientDetail(${c.id})">
+          <i class="fa-solid fa-eye me-1"></i> View
+        </button>
         <button class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="deleteClient(${c.id})">
           <i class="fa-solid fa-trash me-1"></i> Delete
         </button>
@@ -1213,6 +1219,164 @@ async function checkAiHealth() {
 // DOM Event Listeners
 // -------------------------------------------------------------
 // -------------------------------------------------------------
+// Client detail: one client's invoices and balance
+// -------------------------------------------------------------
+async function openClientDetail(clientId) {
+  const client = state.clients.find(c => c.id === clientId);
+  if (!client) return;
+  state.detailClientId = clientId;
+
+  try {
+    const invoices = (await api('/invoices')).filter(inv => inv.client && inv.client.id === clientId);
+    let billed = 0, paid = 0, outstanding = 0, overdue = 0;
+    invoices.forEach(inv => {
+      const total = Number(inv.totalAmount) || 0;
+      if (inv.status === 'DRAFT') return;
+      billed += total;
+      if (inv.status === 'PAID') paid += total;
+      if (inv.status === 'SENT' || inv.status === 'OVERDUE') outstanding += total;
+      if (inv.status === 'OVERDUE') overdue += total;
+    });
+
+    document.getElementById('clientDetailName').textContent = client.name;
+    document.getElementById('clientDetailMeta').textContent =
+      [client.email, client.state, client.gstin ? 'GSTIN ' + client.gstin : ''].filter(Boolean).join(' · ');
+
+    const stat = (label, value, extra = '') => `
+      <div class="col-6 col-md-3">
+        <div class="client-stat ${extra}">
+          <div class="client-stat-label">${label}</div>
+          <div class="client-stat-value">${value}</div>
+        </div>
+      </div>`;
+    document.getElementById('clientDetailStats').innerHTML =
+      stat('Invoices', invoices.length) +
+      stat('Billed', formatCurrency(billed)) +
+      stat('Paid', formatCurrency(paid), 'is-paid') +
+      stat('Outstanding', formatCurrency(outstanding), overdue > 0 ? 'is-overdue' : '');
+
+    const tbody = document.getElementById('clientDetailInvoices');
+    tbody.innerHTML = invoices.length
+      ? invoices.map(inv => `
+          <tr>
+            <td class="fw-semibold text-primary">${escapeHtml(inv.invoiceNumber)}</td>
+            <td>${formatDate(inv.issueDate)}</td>
+            <td>${formatDate(inv.dueDate)}</td>
+            <td class="text-end fw-semibold">${formatCurrency(inv.totalAmount)}</td>
+            <td>${renderStatusBadge(inv.status)}</td>
+          </tr>`).join('')
+      : '<tr><td colspan="5" class="text-center text-muted py-4">No invoices for this client yet.</td></tr>';
+
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('clientDetailModal')).show();
+  } catch (err) {
+    showToast(err.message, true);
+  }
+}
+
+function newInvoiceForDetailClient() {
+  const clientId = state.detailClientId;
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('clientDetailModal')).hide();
+  openCreateInvoiceModal();
+  const select = document.getElementById('invClientId');
+  select.value = String(clientId);
+  select.dispatchEvent(new Event('change'));
+}
+
+// -------------------------------------------------------------
+// Company Settings
+// -------------------------------------------------------------
+async function loadSettings() {
+  try {
+    const profile = await api('/profile');
+    document.getElementById('profileName').value = profile.name || '';
+    document.getElementById('profileEmail').value = profile.email || '';
+    document.getElementById('profileBusiness').value = profile.businessName || '';
+    document.getElementById('profileGstin').value = profile.gstin || '';
+    document.getElementById('profileState').value = matchState(profile.state);
+    updateSettingsStateHint();
+  } catch (err) {
+    showToast(err.message, true);
+  }
+}
+
+function updateSettingsStateHint() {
+  const value = document.getElementById('profileState').value;
+  document.getElementById('settingsStateSame').textContent = value || 'your state';
+}
+
+async function saveProfile(e) {
+  e.preventDefault();
+  const button = document.getElementById('btnSaveProfile');
+  button.disabled = true;
+  try {
+    const profile = await api('/profile', {
+      method: 'PUT',
+      body: JSON.stringify({
+        name: document.getElementById('profileName').value.trim(),
+        businessName: document.getElementById('profileBusiness').value.trim(),
+        gstin: document.getElementById('profileGstin').value.trim(),
+        state: document.getElementById('profileState').value
+      })
+    });
+    // Keep the header, tax previews and AI features in sync with the new details
+    state.user = { ...state.user, name: profile.name, businessName: profile.businessName,
+                   gstin: profile.gstin || '', state: profile.state };
+    localStorage.setItem('invox_user', JSON.stringify(state.user));
+    showApp();
+    showToast('Company settings saved.');
+  } catch (err) {
+    showToast(err.message, true);
+  } finally {
+    button.disabled = false;
+  }
+}
+
+// -------------------------------------------------------------
+// Write payment notes with AI (invoice form)
+// -------------------------------------------------------------
+async function writeNotesWithAi() {
+  const notesEl = document.getElementById('invNotes');
+  if (notesEl.value.trim() && !confirm('Replace the current notes with an AI draft?')) return;
+
+  const button = document.getElementById('btnAiWriteNotes');
+  const label = button.querySelector('span');
+  button.disabled = true;
+  label.textContent = 'Writing...';
+
+  const clientId = Number(document.getElementById('invClientId').value);
+  const client = state.clients.find(c => c.id === clientId);
+  let total = 0;
+  const descriptions = [];
+  document.querySelectorAll('#invItemsBody tr').forEach(row => {
+    const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+    const rate = parseFloat(row.querySelector('.item-rate').value) || 0;
+    const gst = parseFloat(row.querySelector('.item-gst').value) || 0;
+    total += qty * rate * (1 + gst / 100);
+    const desc = row.querySelector('.item-desc').value.trim();
+    if (desc) descriptions.push(desc);
+  });
+
+  try {
+    const result = await api('/ai/write-notes', {
+      method: 'POST',
+      body: JSON.stringify({
+        clientName: client ? client.name : '',
+        dueDate: document.getElementById('invDueDate').value,
+        totalAmount: Math.round(total * 100) / 100,
+        itemDescriptions: descriptions.slice(0, 20)
+      })
+    });
+    notesEl.value = result.notes;
+    showToast(`Notes drafted by ${result.providerUsed}. Review them before saving.`);
+  } catch (err) {
+    showToast(err.message, true);
+  } finally {
+    button.disabled = false;
+    label.textContent = 'Write with AI';
+  }
+}
+
+// -------------------------------------------------------------
 // AI Assistant: ask questions about your own invoices
 // -------------------------------------------------------------
 function openAssistant() {
@@ -1310,6 +1474,16 @@ async function askAssistant(question) {
 }
 
 function setupEventListeners() {
+  // Company settings, client detail, AI notes
+  document.getElementById('profileForm').addEventListener('submit', saveProfile);
+  document.getElementById('profileState').addEventListener('change', updateSettingsStateHint);
+  document.getElementById('menuSettings').addEventListener('click', (e) => {
+    e.preventDefault();
+    switchView('settings');
+  });
+  document.getElementById('btnClientNewInvoice').addEventListener('click', newInvoiceForDetailClient);
+  document.getElementById('btnAiWriteNotes').addEventListener('click', writeNotesWithAi);
+
   // AI assistant drawer
   document.getElementById('btnOpenAssistant').addEventListener('click', openAssistant);
   document.getElementById('btnSidebarAssistant').addEventListener('click', openAssistant);
