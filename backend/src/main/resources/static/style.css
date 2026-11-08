@@ -255,3 +255,183 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
     padding: 20px !important;
   }
 }
+
+/* ========================================================
+   Interactive polish: motion and feedback
+   ======================================================== */
+
+/* Each view fades up when it opens */
+.app-view:not(.d-none) {
+  animation: viewIn 0.35s ease-out both;
+}
+
+@keyframes viewIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Dashboard cards rise slightly on hover */
+.stat-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08) !important;
+}
+
+/* Table rows highlight on hover */
+.table tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+.table-hover tbody tr:hover > *,
+#allInvoicesBody tr:hover > *,
+#recentInvoicesBody tr:hover > * {
+  background-color: #f5f7ff;
+}
+
+/* Overdue badges gently pulse to draw attention */
+.badge-status-overdue {
+  animation: overduePulse 2.4s ease-in-out infinite;
+}
+
+@keyframes overduePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.35); }
+  50%      { box-shadow: 0 0 0 4px rgba(239, 68, 68, 0); }
+}
+
+/* AI Studio: step-by-step progress while the AI works */
+.ai-steps {
+  list-style: none;
+  padding: 0;
+  margin: 1.25rem auto 0;
+  max-width: 340px;
+  text-align: left;
+}
+
+.ai-step {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 0;
+  color: #94a3b8;
+  font-size: 0.875rem;
+  transition: color 0.25s ease;
+}
+
+.ai-step .ai-step-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  background: #f1f5f9;
+  color: #94a3b8;
+  flex-shrink: 0;
+  transition: all 0.25s ease;
+}
+
+.ai-step.active { color: var(--dark); font-weight: 600; }
+.ai-step.active .ai-step-icon {
+  background: var(--primary-light);
+  color: var(--primary);
+  animation: stepSpin 1s linear infinite;
+}
+
+.ai-step.done { color: #475569; }
+.ai-step.done .ai-step-icon {
+  background: #d1fae5;
+  color: var(--emerald);
+  animation: none;
+}
+
+@keyframes stepSpin {
+  to { transform: rotate(360deg); }
+}
+
+.ai-orb {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 1.5rem;
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #d946ef 100%);
+  animation: orbGlow 1.6s ease-in-out infinite;
+}
+
+@keyframes orbGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.45); transform: scale(1); }
+  50%      { box-shadow: 0 0 0 14px rgba(124, 58, 237, 0); transform: scale(1.04); }
+}
+
+/* AI result slides in, line items appear one by one */
+.ai-reveal {
+  animation: viewIn 0.4s ease-out both;
+}
+
+.ai-reveal-row {
+  animation: viewIn 0.35s ease-out both;
+}
+
+/* Totals preview under the AI result */
+.ai-totals {
+  border: 1px dashed #c7d2fe;
+  background: #f8faff;
+  border-radius: 0.75rem;
+}
+
+.ai-totals .ai-total-amount {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+/* Generate button shimmer while working */
+.btn-gradient-ai:disabled {
+  /* Colours repeat at both ends so the moving gradient has no visible seam */
+  background-image: linear-gradient(90deg, #4f46e5, #7c3aed, #c026d3, #7c3aed, #4f46e5);
+  background-size: 200% 100%;
+  animation: btnShimmer 1.2s linear infinite;
+  opacity: 0.85;
+}
+
+@keyframes btnShimmer {
+  from { background-position: 0% 0; }
+  to   { background-position: -200% 0; }
+}
+
+/* Feature chips on the sign-in card */
+.auth-features span {
+  font-size: 0.72rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.auth-features i {
+  color: #fbbf24;
+  margin-right: 0.25rem;
+}
+
+.auth-card {
+  animation: viewIn 0.45s ease-out both;
+}
+
+/* Respect users who prefer less motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

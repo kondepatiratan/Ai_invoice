@@ -179,16 +179,16 @@ async function loadDashboard() {
     const stats = await api('/dashboard/stats');
     state.stats = stats;
 
-    document.getElementById('statPaidRevenue').textContent = formatCurrency(stats.totalRevenue);
+    animateNumber(document.getElementById('statPaidRevenue'), stats.totalRevenue, formatCurrency);
     document.getElementById('statPaidCount').textContent = `${stats.paidCount} Paid`;
 
-    document.getElementById('statPendingRevenue').textContent = formatCurrency(stats.pendingRevenue);
+    animateNumber(document.getElementById('statPendingRevenue'), stats.pendingRevenue, formatCurrency);
     document.getElementById('statSentCount').textContent = `${stats.sentCount} Sent`;
 
-    document.getElementById('statOverdueRevenue').textContent = formatCurrency(stats.overdueRevenue);
+    animateNumber(document.getElementById('statOverdueRevenue'), stats.overdueRevenue, formatCurrency);
     document.getElementById('statOverdueCount').textContent = `${stats.overdueCount} Overdue`;
 
-    document.getElementById('statTotalInvoices').textContent = stats.totalInvoices;
+    animateNumber(document.getElementById('statTotalInvoices'), stats.totalInvoices, v => Math.round(v));
     document.getElementById('statDraftCount').textContent = `${stats.draftCount} Drafts`;
     document.getElementById('statClientCount').textContent = `across ${stats.totalClients} clients`;
 
@@ -260,7 +260,15 @@ function renderDashboardCharts(stats) {
         datasets: [{
           label: 'Billed (₹)',
           data: dataValues,
-          backgroundColor: '#4f46e5',
+          backgroundColor: (context) => {
+            const area = context.chart.chartArea;
+            if (!area) return '#4f46e5';
+            const gradient = context.chart.ctx.createLinearGradient(0, area.bottom, 0, area.top);
+            gradient.addColorStop(0, '#818cf8');
+            gradient.addColorStop(1, '#4f46e5');
+            return gradient;
+          },
+          hoverBackgroundColor: '#7c3aed',
           borderRadius: 8,
           barThickness: 36
         }]
@@ -318,7 +326,28 @@ function renderDashboardCharts(stats) {
           },
           tooltip: { enabled: hasInvoices }
         }
-      }
+      },
+      // Writes the total invoice count in the middle of the ring
+      plugins: [{
+        id: 'centerTotal',
+        afterDraw(chart) {
+          const { ctx, chartArea } = chart;
+          if (!chartArea) return;
+          const x = (chartArea.left + chartArea.right) / 2;
+          const y = (chartArea.top + chartArea.bottom) / 2;
+          const total = counts.reduce((sum, c) => sum + c, 0);
+          ctx.save();
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillStyle = '#0f172a';
+          ctx.font = "800 26px 'Plus Jakarta Sans', sans-serif";
+          ctx.fillText(String(total), x, y - 8);
+          ctx.fillStyle = '#64748b';
+          ctx.font = "500 12px 'Inter', sans-serif";
+          ctx.fillText(total === 1 ? 'invoice' : 'invoices', x, y + 14);
+          ctx.restore();
+        }
+      }]
     });
   }
 }
@@ -449,6 +478,10 @@ async function executeAiPrompt() {
   document.getElementById('aiResultContent').classList.add('d-none');
   document.getElementById('aiLoadingIndicator').classList.remove('d-none');
   document.getElementById('btnExecuteAiPrompt').disabled = true;
+  document.getElementById('aiLoadingProvider').textContent = simulateFallback
+    ? 'Simulating a Gemini failure: using the fallback provider'
+    : 'Gemini first, with automatic fallback';
+  const stopSteps = startAiSteps();
 
   try {
     const startTime = Date.now();
@@ -460,11 +493,14 @@ async function executeAiPrompt() {
       })
     });
     const elapsedSec = ((Date.now() - startTime) / 1000).toFixed(1);
+    await stopSteps(true);
 
     state.aiLastGenerated = result;
     displayAiGeneratedInvoice(result, elapsedSec);
     showToast(`Invoice structured with ${result.providerUsed}!`);
   } catch (err) {
+    await stopSteps(false);
+    document.getElementById('aiEmptyState').classList.remove('d-none');
     showToast(err.message, true);
   } finally {
     document.getElementById('aiLoadingIndicator').classList.add('d-none');
@@ -472,8 +508,35 @@ async function executeAiPrompt() {
   }
 }
 
+// Moves through the progress steps while waiting for the AI.
+// The steps are a visual guide; the real work happens in one server call.
+function startAiSteps() {
+  const steps = Array.from(document.querySelectorAll('#aiSteps .ai-step'));
+  steps.forEach(step => step.classList.remove('active', 'done'));
+  let current = 0;
+  steps[0].classList.add('active');
+
+  const timer = setInterval(() => {
+    if (current < steps.length - 1) {
+      steps[current].classList.replace('active', 'done');
+      current++;
+      steps[current].classList.add('active');
+    }
+  }, 900);
+
+  return async (success) => {
+    clearInterval(timer);
+    if (!success) return;
+    steps.forEach(step => { step.classList.remove('active'); step.classList.add('done'); });
+    await new Promise(resolve => setTimeout(resolve, 350));
+  };
+}
+
 function displayAiGeneratedInvoice(data, elapsedSec) {
-  document.getElementById('aiResultContent').classList.remove('d-none');
+  const resultBox = document.getElementById('aiResultContent');
+  resultBox.classList.remove('d-none', 'ai-reveal');
+  void resultBox.offsetWidth; // restart the reveal animation on every new result
+  resultBox.classList.add('ai-reveal');
 
   // Provider Badge
   const badge = document.getElementById('aiProviderBadge');
@@ -493,14 +556,81 @@ function displayAiGeneratedInvoice(data, elapsedSec) {
   document.getElementById('aiResNotes').textContent = data.notes || 'Standard Net 15 terms.';
 
   const tbody = document.getElementById('aiResItemsBody');
-  tbody.innerHTML = (data.items || []).map(item => `
-    <tr>
+  tbody.innerHTML = (data.items || []).map((item, index) => `
+    <tr class="ai-reveal-row" style="animation-delay: ${0.1 + index * 0.08}s">
       <td>${escapeHtml(item.description)}</td>
       <td class="text-end">${item.quantity}</td>
-      <td class="text-end">₹${item.rate}</td>
+      <td class="text-end">${formatCurrency(item.rate)}</td>
       <td class="text-end">${item.gstRate}%</td>
     </tr>
   `).join('');
+
+  renderAiTotalsPreview(data);
+}
+
+// Shows what the invoice will add up to, using the same GST rule as the backend.
+// It's only a preview: the server recalculates everything when the invoice is saved.
+function renderAiTotalsPreview(data) {
+  const box = document.getElementById('aiResTotals');
+  const items = data.items || [];
+  let subtotal = 0;
+  let tax = 0;
+  items.forEach(item => {
+    const amount = (Number(item.quantity) || 0) * (Number(item.rate) || 0);
+    subtotal += amount;
+    tax += amount * (Number(item.gstRate) || 0) / 100;
+  });
+
+  const sellerState = ((state.user && state.user.state) || '').trim().toLowerCase();
+  const clientState = (data.clientState || '').trim().toLowerCase();
+  let taxLines;
+  if (!sellerState || !clientState) {
+    taxLines = `<div class="d-flex justify-content-between"><span>GST</span><span>${formatCurrency(tax)}</span></div>`;
+  } else if (sellerState === clientState) {
+    taxLines = `
+      <div class="d-flex justify-content-between"><span>CGST</span><span>${formatCurrency(tax / 2)}</span></div>
+      <div class="d-flex justify-content-between"><span>SGST</span><span>${formatCurrency(tax / 2)}</span></div>`;
+  } else {
+    taxLines = `<div class="d-flex justify-content-between"><span>IGST</span><span>${formatCurrency(tax)}</span></div>`;
+  }
+
+  const taxType = !sellerState || !clientState ? 'GST type decided when the client is confirmed'
+    : sellerState === clientState ? 'Same state: CGST + SGST' : 'Different states: IGST';
+
+  box.innerHTML = `
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <span class="small fw-bold text-uppercase text-dark">Estimated Total</span>
+      <span class="badge bg-white text-primary border border-primary-subtle rounded-pill">${taxType}</span>
+    </div>
+    <div class="small text-secondary">
+      <div class="d-flex justify-content-between"><span>Subtotal</span><span>${formatCurrency(subtotal)}</span></div>
+      ${taxLines}
+    </div>
+    <div class="d-flex justify-content-between align-items-end mt-2 pt-2 border-top">
+      <span class="small text-muted">Final amounts are recalculated by the server on save</span>
+      <span class="ai-total-amount" id="aiResTotalAmount">${formatCurrency(subtotal + tax)}</span>
+    </div>`;
+  animateNumber(document.getElementById('aiResTotalAmount'), subtotal + tax, formatCurrency);
+}
+
+// Counts a number up from 0 for a livelier feel. Final text is always the exact value.
+function animateNumber(element, target, format) {
+  if (!element) return;
+  const value = Number(target) || 0;
+  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduceMotion || value === 0) {
+    element.textContent = format(value);
+    return;
+  }
+  const duration = 700;
+  const start = performance.now();
+  const tick = (now) => {
+    const progress = Math.min((now - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    element.textContent = format(progress < 1 ? value * eased : value);
+    if (progress < 1) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
 }
 
 async function applyAiGeneratedToInvoice(autoSave = false) {

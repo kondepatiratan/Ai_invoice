@@ -33,12 +33,17 @@
   <div id="authScreen" class="auth-wrapper min-vh-100 d-flex align-items-center justify-content-center p-3">
     <div class="auth-card card shadow-2xl border-0 overflow-hidden" style="max-width: 460px; width: 100%;">
       <div class="card-header bg-gradient-brand text-white p-4 text-center border-0 position-relative">
-        <div class="brand-badge mb-2 d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-white bg-opacity-15">
+        <div class="brand-badge mb-2 d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-white bg-opacity-10">
           <i class="fa-solid fa-wand-magic-sparkles text-amber"></i>
           <span class="small fw-semibold letter-spacing-1">NIVUNA LABS ASSIGNMENT</span>
         </div>
         <h2 class="h4 fw-bold mb-1">InvoxAI Studio</h2>
-        <p class="small text-white-50 mb-0">Intelligent GST Invoicing powered by Gemini & ChatGPT Fallback</p>
+        <p class="small text-white-50 mb-3">Intelligent GST Invoicing powered by Gemini & ChatGPT Fallback</p>
+        <div class="d-flex flex-wrap justify-content-center gap-2 auth-features">
+          <span><i class="fa-solid fa-wand-magic-sparkles"></i> Plain-English invoices</span>
+          <span><i class="fa-solid fa-scale-balanced"></i> Automatic GST split</span>
+          <span><i class="fa-solid fa-bell"></i> AI payment reminders</span>
+        </div>
       </div>
 
       <div class="card-body p-4">
@@ -526,12 +531,16 @@
                 </div>
 
                 <!-- Loading State (hidden by default) -->
-                <div id="aiLoadingIndicator" class="d-none text-center py-5 my-auto">
-                  <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                  </div>
-                  <h6 class="fw-bold text-dark">Invoking AI Engine...</h6>
-                  <p class="small text-muted mb-0">Evaluating prompt with Google Gemini 2.5 Flash (fallback to ChatGPT on error)</p>
+                <div id="aiLoadingIndicator" class="d-none text-center py-4 my-auto">
+                  <div class="ai-orb"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+                  <h6 class="fw-bold text-dark mt-3 mb-1">AI is reading your request</h6>
+                  <p class="small text-muted mb-0" id="aiLoadingProvider">Gemini first, with automatic fallback</p>
+                  <ul class="ai-steps" id="aiSteps">
+                    <li class="ai-step"><span class="ai-step-icon"><i class="fa-solid fa-circle-notch"></i></span>Understanding your prompt</li>
+                    <li class="ai-step"><span class="ai-step-icon"><i class="fa-solid fa-circle-notch"></i></span>Identifying the client and state</li>
+                    <li class="ai-step"><span class="ai-step-icon"><i class="fa-solid fa-circle-notch"></i></span>Extracting line items and rates</li>
+                    <li class="ai-step"><span class="ai-step-icon"><i class="fa-solid fa-circle-notch"></i></span>Applying GST rules and due date</li>
+                  </ul>
                 </div>
 
                 <!-- Empty State -->
@@ -577,6 +586,8 @@
                       <tbody id="aiResItemsBody"></tbody>
                     </table>
                   </div>
+
+                  <div class="ai-totals p-3 mb-3" id="aiResTotals"></div>
 
                   <div class="p-3 bg-primary-subtle rounded-3 mb-4">
                     <span class="small text-muted d-block">AI Suggested Payment Terms:</span>
