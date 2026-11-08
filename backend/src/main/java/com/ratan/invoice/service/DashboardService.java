@@ -9,12 +9,12 @@ import com.ratan.invoice.repository.InvoiceRepository;
 import com.ratan.invoice.security.SecurityUtils;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,7 +52,8 @@ public class DashboardService {
         long paidCount = 0;
         long overdueCount = 0;
 
-        Map<String, DashboardStatsResponse.MonthlyRevenueDto> monthlyMap = new LinkedHashMap<>();
+        // TreeMap keeps months in calendar order, whatever order the invoices were created in
+        Map<YearMonth, DashboardStatsResponse.MonthlyRevenueDto> monthlyMap = new TreeMap<>();
         DateTimeFormatter monthFmt = DateTimeFormatter.ofPattern("MMM yyyy");
 
         for (Invoice inv : invoices) {
@@ -76,13 +77,14 @@ public class DashboardService {
             }
 
             if (inv.getIssueDate() != null) {
-                String mKey = inv.getIssueDate().format(monthFmt);
-                DashboardStatsResponse.MonthlyRevenueDto existing = monthlyMap.get(mKey);
+                YearMonth month = YearMonth.from(inv.getIssueDate());
+                String label = inv.getIssueDate().format(monthFmt);
+                DashboardStatsResponse.MonthlyRevenueDto existing = monthlyMap.get(month);
                 if (existing == null) {
-                    monthlyMap.put(mKey, new DashboardStatsResponse.MonthlyRevenueDto(mKey, total, 1));
+                    monthlyMap.put(month, new DashboardStatsResponse.MonthlyRevenueDto(label, total, 1));
                 } else {
-                    monthlyMap.put(mKey, new DashboardStatsResponse.MonthlyRevenueDto(
-                            mKey, existing.revenue().add(total), existing.count() + 1));
+                    monthlyMap.put(month, new DashboardStatsResponse.MonthlyRevenueDto(
+                            label, existing.revenue().add(total), existing.count() + 1));
                 }
             }
         }
@@ -91,7 +93,6 @@ public class DashboardService {
         List<InvoiceResponse> recentInvoices = allInvoices.stream().limit(5).toList();
 
         List<DashboardStatsResponse.MonthlyRevenueDto> monthlyTrends = new ArrayList<>(monthlyMap.values());
-        Collections.reverse(monthlyTrends);
 
         return new DashboardStatsResponse(
                 totalInvoices,
