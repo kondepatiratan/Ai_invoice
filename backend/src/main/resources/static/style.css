@@ -500,7 +500,7 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
 }
 
 /* ========================================================
-   App shell: sidebar + top bar (InvoiceShelf-style layout)
+   App shell: sidebar + top bar
    ======================================================== */
 .app-shell:not(.d-none) {
   display: flex;

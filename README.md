@@ -40,7 +40,7 @@
    - **Read-only and scoped:** it only sees the logged-in business's data and can't create, change, send or delete anything.
    - Same fallback chain: Gemini → ChatGPT → rule-based answers that work with no AI at all.
 
-8. **Company Settings, Client Details and AI Notes** (inspired by open-source invoicing apps like InvoiceShelf):
+8. **Company Settings, Client Details and AI Notes**:
    - **Company Settings** page to update business name, GSTIN and state. The state drives CGST + SGST vs IGST, and a change applies to new or re-saved invoices only.
    - **Client detail view**: each client's invoices with billed, paid and outstanding totals, plus "New Invoice for this Client".
    - **Write with AI** on the invoice's Payment Terms & Notes: drafts a short note with the amount and due date, never inventing bank details, UPI IDs or late fees. Falls back to a standard template.
