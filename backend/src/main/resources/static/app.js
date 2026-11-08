@@ -14,6 +14,8 @@ const state = {
   searchQuery: '',
   currentPreviewInvoice: null,
   aiLastGenerated: null,
+  chatHistory: [],
+  chatBusy: false,
   charts: {
     revenue: null,
     status: null
@@ -62,6 +64,12 @@ function showApp() {
   document.getElementById('userMenuName').textContent = user.name || 'User';
   document.getElementById('userMenuEmail').textContent = user.email || '';
   document.getElementById('userMenuBiz').textContent = user.businessName || 'Business Profile';
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  const firstName = (user.name || '').trim().split(' ')[0];
+  document.getElementById('topbarGreeting').textContent = firstName ? `${greeting}, ${firstName}` : greeting;
+  document.getElementById('topbarBusiness').textContent =
+    [user.businessName, user.state].filter(Boolean).join(' · ');
 }
 
 function setSession(authResponse) {
@@ -86,6 +94,7 @@ function logout() {
   localStorage.removeItem('invox_user');
   state.token = null;
   state.user = null;
+  resetAssistant();
   showAuth();
   showToast('You have been signed out.');
 }
@@ -262,13 +271,13 @@ function renderDashboardCharts(stats) {
           data: dataValues,
           backgroundColor: (context) => {
             const area = context.chart.chartArea;
-            if (!area) return '#4f46e5';
+            if (!area) return '#0d9488';
             const gradient = context.chart.ctx.createLinearGradient(0, area.bottom, 0, area.top);
-            gradient.addColorStop(0, '#818cf8');
-            gradient.addColorStop(1, '#4f46e5');
+            gradient.addColorStop(0, '#5eead4');
+            gradient.addColorStop(1, '#0d9488');
             return gradient;
           },
-          hoverBackgroundColor: '#7c3aed',
+          hoverBackgroundColor: '#0891b2',
           borderRadius: 8,
           barThickness: 36
         }]
@@ -1203,7 +1212,115 @@ async function checkAiHealth() {
 // -------------------------------------------------------------
 // DOM Event Listeners
 // -------------------------------------------------------------
+// -------------------------------------------------------------
+// AI Assistant: ask questions about your own invoices
+// -------------------------------------------------------------
+function openAssistant() {
+  const drawer = document.getElementById('assistantDrawer');
+  bootstrap.Offcanvas.getOrCreateInstance(drawer).show();
+  const messages = document.getElementById('assistantMessages');
+  if (!messages.children.length) {
+    const name = ((state.user && state.user.name) || '').trim().split(' ')[0];
+    addChatMessage('assistant',
+      `Hi${name ? ' ' + name : ''}! I can answer questions about your invoices, clients and payments, ` +
+      'using your own data. Try one of the suggestions below, or type your question.');
+  }
+  setTimeout(() => document.getElementById('assistantInput').focus(), 300);
+}
+
+function resetAssistant() {
+  state.chatHistory = [];
+  state.chatBusy = false;
+  const messages = document.getElementById('assistantMessages');
+  if (messages) messages.innerHTML = '';
+}
+
+// Text is always inserted with textContent, so AI output can never run as HTML
+function addChatMessage(role, text, meta) {
+  const messages = document.getElementById('assistantMessages');
+  const row = document.createElement('div');
+  row.className = `chat-row ${role}`;
+  const bubble = document.createElement('div');
+  bubble.className = 'chat-bubble';
+  bubble.textContent = text;
+  row.appendChild(bubble);
+  if (meta) {
+    const metaEl = document.createElement('div');
+    metaEl.className = 'chat-meta';
+    metaEl.textContent = meta;
+    row.appendChild(metaEl);
+  }
+  messages.appendChild(row);
+  messages.scrollTop = messages.scrollHeight;
+  return row;
+}
+
+function showTypingIndicator() {
+  const messages = document.getElementById('assistantMessages');
+  const row = document.createElement('div');
+  row.className = 'chat-row assistant';
+  row.id = 'assistantTyping';
+  row.innerHTML = '<div class="chat-bubble p-0"><span class="typing-dots"><span></span><span></span><span></span></span></div>';
+  messages.appendChild(row);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function hideTypingIndicator() {
+  const typing = document.getElementById('assistantTyping');
+  if (typing) typing.remove();
+}
+
+async function askAssistant(question) {
+  const text = (question || '').trim();
+  if (!text || state.chatBusy) return;
+
+  state.chatBusy = true;
+  const input = document.getElementById('assistantInput');
+  const sendBtn = document.getElementById('assistantSend');
+  input.value = '';
+  sendBtn.disabled = true;
+
+  addChatMessage('user', text);
+  showTypingIndicator();
+
+  try {
+    const simulateFallback = document.getElementById('aiSimulateFallback')
+      ? document.getElementById('aiSimulateFallback').checked
+      : false;
+    const result = await api('/ai/chat', {
+      method: 'POST',
+      body: JSON.stringify({
+        question: text,
+        history: state.chatHistory.slice(-6),
+        simulateFallback
+      })
+    });
+    hideTypingIndicator();
+    const seconds = (result.responseTimeMs / 1000).toFixed(1);
+    addChatMessage('assistant', result.answer, `${result.providerUsed} · ${seconds}s`);
+    state.chatHistory.push({ role: 'user', text }, { role: 'assistant', text: result.answer });
+  } catch (err) {
+    hideTypingIndicator();
+    addChatMessage('error', `Sorry, I couldn't answer that: ${err.message}`);
+  } finally {
+    state.chatBusy = false;
+    sendBtn.disabled = false;
+    input.focus();
+  }
+}
+
 function setupEventListeners() {
+  // AI assistant drawer
+  document.getElementById('btnOpenAssistant').addEventListener('click', openAssistant);
+  document.getElementById('btnSidebarAssistant').addEventListener('click', openAssistant);
+  document.getElementById('assistantForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    askAssistant(document.getElementById('assistantInput').value);
+  });
+  document.querySelectorAll('#assistantSuggestions .assistant-chip').forEach(chip => {
+    chip.addEventListener('click', () => askAssistant(chip.dataset.question));
+  });
+
   // Login Form
   document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();

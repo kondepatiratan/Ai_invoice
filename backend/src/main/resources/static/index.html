@@ -122,58 +122,87 @@
   </div>
 
   <!-- MAIN APP CONTAINER -->
-  <div id="mainApp" class="d-none min-vh-100 d-flex flex-column">
+  <div id="mainApp" class="d-none app-shell">
 
-    <!-- TOP NAVBAR -->
-    <header class="navbar navbar-expand-lg bg-white border-bottom sticky-top py-2 px-3 px-lg-4 shadow-xs">
-      <div class="container-fluid p-0">
-        <!-- Brand -->
-        <a class="navbar-brand d-flex align-items-center gap-2 fw-bold text-dark m-0" href="#">
-          <div class="brand-icon bg-gradient-brand text-white rounded-3 d-flex align-items-center justify-content-center">
+    <!-- SIDEBAR (desktop) -->
+    <aside class="app-sidebar d-none d-md-flex flex-column">
+      <a class="sidebar-brand d-flex align-items-center gap-2 text-decoration-none" href="#">
+        <div class="brand-icon bg-gradient-brand text-white rounded-3 d-flex align-items-center justify-content-center">
+          <i class="fa-solid fa-file-invoice-dollar"></i>
+        </div>
+        <span class="fs-5 fw-bold text-dark tracking-tight">Invox<span class="text-primary">AI</span></span>
+      </a>
+
+      <div class="sidebar-label">Menu</div>
+      <nav class="nav flex-column gap-1" id="navLinks">
+        <button class="nav-link active" data-view="dashboard">
+          <i class="fa-solid fa-chart-pie"></i><span>Dashboard</span>
+        </button>
+        <button class="nav-link" data-view="invoices">
+          <i class="fa-solid fa-receipt"></i><span>Invoices</span>
+        </button>
+        <button class="nav-link" data-view="clients">
+          <i class="fa-solid fa-users"></i><span>Clients</span>
+        </button>
+        <button class="nav-link" data-view="ai-studio">
+          <i class="fa-solid fa-wand-magic-sparkles"></i><span>AI Studio</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-label">AI Assistant</div>
+      <button class="sidebar-ai-card text-start" id="btnSidebarAssistant" type="button">
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <span class="sidebar-ai-icon"><i class="fa-solid fa-comments"></i></span>
+          <span class="fw-bold">Ask your invoices</span>
+        </div>
+        <span class="small">"Who owes me the most?" Get answers from your own data.</span>
+      </button>
+
+      <div class="mt-auto pt-3">
+        <div class="ai-status-pill px-3 py-2 rounded-3 border bg-light cursor-pointer" id="btnAiSettings" title="Click to view AI Engine & Fallback configuration">
+          <div class="d-flex align-items-center justify-content-between mb-1">
+            <span class="d-flex align-items-center gap-2 small fw-bold text-dark"><span class="status-pulse bg-emerald"></span>AI Engine</span>
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill py-0 px-2 small">Ready</span>
+          </div>
+          <div class="small text-secondary" id="aiStatusLabel">Gemini 2.5 Flash</div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="app-main d-flex flex-column min-vh-100">
+
+      <!-- TOP BAR -->
+      <header class="app-topbar sticky-top">
+        <a class="d-flex d-md-none align-items-center gap-2 text-decoration-none text-white fw-bold" href="#">
+          <div class="brand-icon bg-white bg-opacity-25 text-white rounded-3 d-flex align-items-center justify-content-center">
             <i class="fa-solid fa-file-invoice-dollar"></i>
           </div>
-          <span class="fs-5 tracking-tight">Invox<span class="text-primary">AI</span></span>
+          <span class="fs-5 tracking-tight">InvoxAI</span>
         </a>
+        <div class="d-none d-md-block text-white">
+          <div class="fw-bold topbar-greeting" id="topbarGreeting">Welcome back</div>
+          <div class="small text-white-50" id="topbarBusiness"></div>
+        </div>
 
-        <!-- Navigation Links (Desktop) -->
-        <nav class="nav nav-pills ms-lg-4 gap-1 d-none d-md-flex" id="navLinks">
-          <button class="nav-link active px-3" data-view="dashboard">
-            <i class="fa-solid fa-chart-pie me-1"></i> Dashboard
-          </button>
-          <button class="nav-link px-3" data-view="invoices">
-            <i class="fa-solid fa-receipt me-1"></i> Invoices
-          </button>
-          <button class="nav-link px-3" data-view="ai-studio">
-            <i class="fa-solid fa-wand-magic-sparkles text-amber me-1"></i> AI Studio
-          </button>
-          <button class="nav-link px-3" data-view="clients">
-            <i class="fa-solid fa-users me-1"></i> Clients
-          </button>
-        </nav>
-
-        <!-- Right Side: AI Status Pill & User Menu -->
         <div class="d-flex align-items-center gap-2 ms-auto">
-          <!-- AI Engine Live Pill -->
-          <div class="ai-status-pill d-flex align-items-center gap-2 px-3 py-1 rounded-pill border bg-light cursor-pointer shadow-2xs" id="btnAiSettings" title="Click to view AI Engine & Fallback configuration">
-            <span class="status-pulse bg-emerald"></span>
-            <span class="small fw-semibold text-secondary" id="aiStatusLabel">Gemini 2.5 Flash</span>
-            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill py-0 px-2 small">AI Ready</span>
-          </div>
+          <button class="btn btn-topbar-ai btn-sm px-3 d-flex align-items-center gap-2 rounded-pill" id="btnOpenAssistant" type="button" title="Ask questions about your invoices">
+            <i class="fa-solid fa-comments"></i>
+            <span class="d-none d-sm-inline">Ask AI</span>
+          </button>
 
-          <!-- New Invoice Quick Action -->
-          <button class="btn btn-primary btn-sm px-3 d-none d-sm-flex align-items-center gap-2 rounded-pill shadow-sm" id="btnTopNewInvoice">
+          <button class="btn btn-light btn-sm px-3 d-none d-sm-flex align-items-center gap-2 rounded-pill fw-semibold text-primary" id="btnTopNewInvoice">
             <i class="fa-solid fa-plus"></i>
             <span>New Invoice</span>
           </button>
 
           <!-- User Dropdown -->
           <div class="dropdown">
-            <button class="btn btn-light rounded-pill p-1 ps-2 pe-3 d-flex align-items-center gap-2 border" type="button" data-bs-toggle="dropdown">
-              <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" id="userAvatar">
+            <button class="btn btn-topbar-user rounded-pill p-1 ps-1 pe-2 d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown">
+              <div class="avatar bg-white text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold" id="userAvatar">
                 RK
               </div>
-              <span class="small fw-semibold d-none d-lg-inline text-dark" id="userNameLabel">Ratan</span>
-              <i class="fa-solid fa-chevron-down small text-muted"></i>
+              <span class="small fw-semibold d-none d-lg-inline text-white" id="userNameLabel">Ratan</span>
+              <i class="fa-solid fa-chevron-down small text-white-50"></i>
             </button>
             <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 py-2">
               <li class="px-3 py-1 border-bottom mb-1">
@@ -187,8 +216,7 @@
             </ul>
           </div>
         </div>
-      </div>
-    </header>
+      </header>
 
     <!-- MOBILE BOTTOM NAVIGATION -->
     <div class="mobile-nav d-flex d-md-none bg-white border-top fixed-bottom justify-content-around py-2 shadow-lg">
@@ -199,7 +227,7 @@
         <i class="fa-solid fa-receipt d-block fs-5"></i><span class="small">Invoices</span>
       </button>
       <button class="btn btn-link text-decoration-none text-muted nav-mobile" data-view="ai-studio">
-        <i class="fa-solid fa-wand-magic-sparkles d-block fs-5 text-amber"></i><span class="small">AI</span>
+        <i class="fa-solid fa-wand-magic-sparkles d-block fs-5"></i><span class="small">AI</span>
       </button>
       <button class="btn btn-link text-decoration-none text-muted nav-mobile" data-view="clients">
         <i class="fa-solid fa-users d-block fs-5"></i><span class="small">Clients</span>
@@ -651,8 +679,42 @@
 
       </div>
     </main>
+    </div>
   </div>
 
+
+  <!-- ======================================================== -->
+  <!-- AI ASSISTANT DRAWER: ask questions about your own data -->
+  <!-- ======================================================== -->
+  <div class="offcanvas offcanvas-end assistant-drawer" tabindex="-1" id="assistantDrawer" aria-labelledby="assistantTitle">
+    <div class="offcanvas-header assistant-header">
+      <div class="d-flex align-items-center gap-2">
+        <span class="assistant-avatar"><i class="fa-solid fa-wand-magic-sparkles"></i></span>
+        <div>
+          <h5 class="offcanvas-title fw-bold mb-0" id="assistantTitle">Ask your invoices</h5>
+          <div class="small text-white-50">Answers come from your own data</div>
+        </div>
+      </div>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body d-flex flex-column p-0">
+      <div class="assistant-messages flex-grow-1" id="assistantMessages" aria-live="polite"></div>
+
+      <div class="assistant-suggestions" id="assistantSuggestions">
+        <button type="button" class="assistant-chip" data-question="Which invoices are overdue?"><i class="fa-solid fa-triangle-exclamation"></i> Overdue invoices</button>
+        <button type="button" class="assistant-chip" data-question="Who owes me the most money?"><i class="fa-solid fa-hand-holding-dollar"></i> Who owes me most?</button>
+        <button type="button" class="assistant-chip" data-question="Who are my top clients?"><i class="fa-solid fa-trophy"></i> Top clients</button>
+        <button type="button" class="assistant-chip" data-question="How much have I collected so far?"><i class="fa-solid fa-sack-dollar"></i> Collected so far</button>
+        <button type="button" class="assistant-chip" data-question="Give me a quick summary of my business."><i class="fa-solid fa-list-check"></i> Quick summary</button>
+      </div>
+
+      <form class="assistant-input" id="assistantForm" autocomplete="off">
+        <input type="text" class="form-control" id="assistantInput" maxlength="500" placeholder="Ask about your invoices, clients or payments..." aria-label="Your question">
+        <button type="submit" class="btn btn-primary" id="assistantSend" aria-label="Send"><i class="fa-solid fa-paper-plane"></i></button>
+      </form>
+      <div class="assistant-footnote"><i class="fa-solid fa-lock"></i> Read-only: the assistant can't change, send or delete anything.</div>
+    </div>
+  </div>
 
   <!-- ======================================================== -->
   <!-- MODAL 1: CREATE / EDIT INVOICE MODAL -->

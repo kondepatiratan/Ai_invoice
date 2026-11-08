@@ -34,7 +34,13 @@
    - **Server-Side PDF**: Uses OpenPDF to stream binary PDFs (`GET /api/invoices/{id}/pdf`) with formal styling, company branding, itemized tables, and tax summaries.
    - **Client-Side Print**: Optimized `@media print` CSS for standard A4 invoice sheets.
 
-7. **Interactive Analytics Dashboard**:
+7. **"Ask Your Invoices" AI Assistant**:
+   - A chat drawer (the **Ask AI** button) where the owner asks questions like *"Who owes me the most?"* or *"Which invoices are overdue?"*.
+   - **Code calculates, AI explains:** the backend builds a read-only snapshot of the business's own numbers (totals, per-client balances, overdue days), and Gemini or ChatGPT only phrase the answer from it, so amounts are never invented.
+   - **Read-only and scoped:** it only sees the logged-in business's data and can't create, change, send or delete anything.
+   - Same fallback chain: Gemini → ChatGPT → rule-based answers that work with no AI at all.
+
+8. **Interactive Analytics Dashboard**:
    - Real-time revenue stat cards: **Collected Revenue (Paid)**, **Pending Receivables (Sent)**, **Overdue Alerts**, and **Active Pipeline**.
    - Chart.js interactive monthly revenue trend bar chart and invoice status donut chart.
 
@@ -50,7 +56,7 @@
 | **Fallback AI** | OpenAI ChatGPT (gpt-4o-mini) | Industry-standard fallback with JSON mode support |
 | **Database** | Embedded H2 (persistent file) / MySQL 8.0 | Zero-setup immediate startup with persistent storage; seamlessly switchable to MySQL |
 | **PDF Engine** | OpenPDF (Lowagie iText) | Vector-crisp printable PDF generation with precise layout control |
-| **Frontend** | HTML5, CSS3, JavaScript (ES6+), Bootstrap 5.3, Chart.js | Clean, responsive Single Page Application (SPA) with glassmorphism styling |
+| **Frontend** | HTML5, CSS3, JavaScript (ES6+), Bootstrap 5.3, Chart.js | Responsive single-page app with a sidebar layout, teal theme and an AI chat drawer |
 
 ---
 
@@ -98,6 +104,7 @@ CGST + SGST (same-state clients) or IGST (other-state clients). Then add a clien
 - `POST /api/ai/generate-invoice`: Extract structured invoice JSON from natural language prompt
 - `POST /api/ai/enhance-description`: Generate professional line-item description, SAC code, rate, and GST slab
 - `POST /api/ai/reminder`: Generate contextual payment follow-up email/WhatsApp message
+- `POST /api/ai/chat`: Ask a question about your own invoices and clients (read-only)
 
 ### Invoices & Tax
 - `GET /api/invoices`: List all invoices (supports `?status=PAID|SENT|OVERDUE|DRAFT`)
